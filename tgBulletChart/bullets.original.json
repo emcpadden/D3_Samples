@@ -1,0 +1,8 @@
+[
+	{"title":"Fixed","subtitle":"US$, in thousands","ranges":[300,425,510],"measures":[350,370],"markers":[300, 400]},
+    {"title":"Mobile","subtitle":"US$, in thousands","ranges":[150,225,300],"measures":[270,330],"markers":[250, 300]},
+    {"title":"Cloud","subtitle":"US$, in thousands","ranges":[150,225,300],"measures":[270,330],"markers":[250, 300]},
+    {"title":"IT","subtitle":"US$, in thousands","ranges":[150,225,300],"measures":[270,330],"markers":[250, 300]},
+    {"title":"Utilities","subtitle":"US$, in thousands","ranges":[150,225,300],"measures":[270,330],"markers":[250, 300]},
+    {"title":"Machine","subtitle":"US$, in thousands","ranges":[150,225,300],"measures":[270,330],"markers":[250, 300]}
+]

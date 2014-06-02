@@ -1,0 +1,14 @@
+[
+	{
+		"title":"Fixed",
+		"subtitle":"US$, in thousands",
+		"ranges":[300,425,510],
+		"measures":[350,370],
+		"markers":[300, 400],
+		"values": {
+			"primary": 350,
+			"secodary": 370
+		}
+	}
+
+]

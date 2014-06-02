@@ -1,0 +1,14 @@
+[
+	{
+		"title":"Fixed",
+		"subtitle":"US$, in thousands",
+		"ranges":[50,80,100],
+		"measures":[92,87],
+		"markers":[86, 80],
+		"primaryValue": 72,
+		"secondaryValue": 50,
+		"rangeLow": 60,
+		"rangeHigh": 75,
+		"max": 100
+	}
+]

@@ -1,0 +1,19 @@
+[
+	{
+		"id": "totalExpense"
+		"title":"Total Expenses",
+		"subtitle":"US$, in thousands",
+		"values": {
+			"primary": 92741.64,
+			"secondary": 87081.35,
+		},
+		"markers": {
+			"primary": 86475.00,
+			"secondary": 50076.00
+		},
+		"range": {
+			"low": 80000,
+			"high": 100000
+		}
+	}
+]
