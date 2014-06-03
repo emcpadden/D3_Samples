@@ -11,9 +11,9 @@
 
 (function() {
 
-d3.tgBullet = function() {
+d3.tgBulletChart = function() {
   var reverse = false,
-      duration = 0,
+      duration = 800,
       markers = bulletMarkers,
       width = 300,
       height = 30,
@@ -47,15 +47,11 @@ d3.tgBullet = function() {
           w1 = bulletWidth(x1);
 
       // draw a background for the bullet chart
-      var background = g.selectAll("rect.background")
+      var background = g.selectAll("rect.tg-bulletchart__background")
         .data([chartmax]);
       background.enter().append("rect")
-          .attr("class", "background")
+          .attr("class", "tg-bulletchart__background")
           .attr("width", w0)
-          .attr("height", height)
-          .attr("x", reverse ? x0 : 0)
-        .transition()
-          .duration(duration)
           .attr("width", w1)
           .attr("x", reverse ? x1 : 0);
 
@@ -73,22 +69,18 @@ d3.tgBullet = function() {
         var rangeBottom = d.rangeLow || 0;
         var rangeTop = d.rangeHigh || chartmax;
 
-        var acceptableRange = g.selectAll("rect.range")
+        var acceptableRange = g.selectAll("rect.tg-bulletchart__range")
             .data([{bottom: rangeBottom, top: rangeTop}]);
 
         var scaleForRange = w1;
         var previousScaleForRange = w0;
 
         acceptableRange.enter().append("rect")
-            .attr("class", "range")
-            .attr("width", function(d,i) {return previousScaleForRange(d.top - d.bottom);})
+            .attr("class", "tg-bulletchart__range")
             .attr("height", height)
-            .attr("x", function(d,i) {return reverse ? previousScaleForRange(chartmax - d.top) : previousScaleForRange(d.bottom);})
-            .append("svg:title").text(function(d) {return getToolTip("range", data, d)})
-          .transition()
-            .duration(duration)
             .attr("width", function(d,i) {return scaleForRange(d.top - d.bottom);})
-            .attr("x", function(d,i) {return reverse ? scaleForRange(chartmax - d.top) : scaleForRange(d.bottom);});
+            .attr("x", function(d,i) {return reverse ? scaleForRange(chartmax - d.top) : scaleForRange(d.bottom);})
+            .append("svg:title").text(function(d) {return getToolTip("range", data, d)});
 
         acceptableRange.transition()
             .duration(duration)
@@ -100,21 +92,16 @@ d3.tgBullet = function() {
       }
 
       if(d.secondaryValue) {
-        var secondaryBullet = g.selectAll("rect.measure.secondary")
+        var secondaryBullet = g.selectAll("rect.tg-bulletchart__bullet--secondary")
             .data([d.secondaryValue]);
 
         secondaryBullet.enter().append("rect")
-            .attr("class", "measure secondary")
-            .attr("width", function(d,i) {return previousScaleForRange(d);})
+            .attr("class", "tg-bulletchart__bullet tg-bulletchart__bullet--secondary")
             .attr("height", height - (height / 2.5))
-            .attr("x", function(d,i) {return reverse ? previousScaleForRange(d) : 0;})
-            .attr("y", height / 5)
-            .append("svg:title").text(function(d) {return getToolTip("secondary", data, d)})
-          .transition()
-            .duration(duration)
             .attr("width", w1)
-            .attr("x", reverse ? x1 : 0);
-
+            .attr("x", reverse ? x1 : 0)
+            .attr("y", height / 5)
+            .append("svg:title").text(function(d) {return getToolTip("secondary", data, d)});
 
         secondaryBullet.transition()
             .duration(duration)
@@ -127,11 +114,11 @@ d3.tgBullet = function() {
       }
 
       if(d.primaryValue) {
-        var primaryBullet = g.selectAll("rect.measure.primary")
+        var primaryBullet = g.selectAll("rect.tg-bulletchart__bullet--primary")
             .data([d.primaryValue]);
 
         primaryBullet.enter().append("rect")
-            .attr("class", "measure primary")
+            .attr("class", "tg-bulletchart__bullet tg-bulletchart__bullet--primary")
             .style("fill", function(d, i) {return setBulletColor(d, rangeBottom, rangeTop, inRangeColor, outOfRangeColor);})
             .attr("width", w0)
             .attr("height", height / 3)
@@ -152,24 +139,20 @@ d3.tgBullet = function() {
 
         primaryBullet.select("title").text(function(d) {return getToolTip("primary", data, d)});
 
-        transitionBulletColor(primaryBullet, d.primaryValue, d.rangeLow, d.rangeHigh, inRangeColor, outOfRangeColor);
+        transitionBulletColor(primaryBullet, d.primaryValue, d.rangeLow, d.rangeHigh, inRangeColor, outOfRangeColor, duration);
       }
 
       // Update the marker lines.
-      var marker = g.selectAll("line.marker")
+      var marker = g.selectAll("line.tg-bulletchart__marker")
           .data(markerz);
 
       marker.enter().append("line")
-          .attr("class", function(d, i) { return "marker s" + i; })
-          .attr("x1", x0)
-          .attr("x2", x0)
+          .attr("class", function(d, i) { return "tg-bulletchart__marker tg-bulletchart__marker--" + i; })
+          .attr("x1", x1)
+          .attr("x2", x1)
           .attr("y1", 0 - height / 6)
           .attr("y2", height + height / 6)
-          .append("svg:title").text(function(d, i) {return getToolTip("marker", data, d, i)})
-        .transition()
-          .duration(duration)
-          .attr("x1", x1)
-          .attr("x2", x1);
+          .append("svg:title").text(function(d, i) {return getToolTip("marker", data, d, i)});
 
       marker.transition()
           .duration(duration)
@@ -192,7 +175,7 @@ d3.tgBullet = function() {
       // Initialize the ticks with the old scale, x0.
       var tickEnter = tick.enter().append("g")
           .attr("class", "tick")
-          .attr("transform", bulletTranslate(x0))
+          .attr("transform", bulletTranslate(x1))
           .style("opacity", 1e-6);
 
       tickEnter.append("line")
@@ -208,7 +191,6 @@ d3.tgBullet = function() {
       // Transition the entering ticks to the new scale, x1.
       tickEnter.transition()
           .duration(duration)
-          .attr("transform", bulletTranslate(x1))
           .style("opacity", 1);
 
       // Transition the updating ticks to the new scale, x1.
@@ -381,7 +363,7 @@ function setBulletColor(value, rangeBottom, rangeTop, inRangeColor, outOfRangeCo
   return color;
 }
 
-function transitionBulletColor(d3element, value, rangeBottom, rangeTop, inRangeColor, outOfRangeColor) {
+function transitionBulletColor(d3element, value, rangeBottom, rangeTop, inRangeColor, outOfRangeColor, duration) {
   var needsAttention = false;
   if(rangeBottom && rangeBottom > value) {
     needsAttention = true;
@@ -390,10 +372,10 @@ function transitionBulletColor(d3element, value, rangeBottom, rangeTop, inRangeC
     needsAttention = true;
   }
   if(needsAttention) {
-    d3element.transition().delay(1000).duration(1000).style("fill", outOfRangeColor);
+    d3element.transition().delay(duration).duration(duration).style("fill", outOfRangeColor);
   }
   else {
-    d3element.transition().delay(1000).duration(1000).style("fill", inRangeColor);
+    d3element.transition().delay(duration).duration(duration).style("fill", inRangeColor);
   }
 }
 

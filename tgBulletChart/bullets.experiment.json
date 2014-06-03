@@ -8,7 +8,7 @@
 		"markerTooltips":["Current Target $86K", "Fixed Expense One Year Ago $50K"],
 		"primaryValue": 72,
 		"primaryValueTooltip": "Current Fixed Expense $72K",
-		"secondaryValue": 50,
+		"secondaryValue": 56,
 		"secondaryValueTooltip": "Previous Month Fixed Expense $72K",
 		"rangeLow": 60,
 		"rangeHigh": 75,

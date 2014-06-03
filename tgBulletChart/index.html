@@ -10,53 +10,26 @@ body {
   position: relative;
 }
 
-.bullet { font: 10px sans-serif; }
-.bullet .marker { stroke: #000; stroke-width: 2px; }
-.bullet .marker.s1 { stroke-dasharray:1px,2px; }
-.bullet .tick line { stroke: #666; stroke-width: .5px; }
+.tg-bulletchart { font: 10px sans-serif; }
+.tg-bulletchart .tg-bulletchart__marker { stroke: #000; stroke-width: 2px; }
+.tg-bulletchart .tg-bulletchart__marker.tg-bulletchart__marker--1 { stroke-dasharray:1px,2px; }
+.tg-bulletchart .tick line { stroke: #666; stroke-width: .5px; }
 
 
-.bullet .background {
+.tg-bulletchart .tg-bulletchart__background {
   fill: #ccc;  stroke: #aaa; stroke-width: 1px;
 }
 
 
-.bullet .range { 
+.tg-bulletchart .tg-bulletchart__range { 
   fill: #f5f5f5; 
   stroke: #777; 
   stroke-width: .5px; 
   stroke-dasharray:1,2;
 }
-
-
-
-.bullet .range.s0 { fill: #eee; }
-
-
-.bullet .range.s0 { fill: #eee; }
-.bullet .range.s1 { fill: #ccc; }
-.bullet .range.s2 { fill: #bbb; }
-.bullet .range.s3 { fill: #999; }
-.bullet .range.s4 { fill: #888; }
-.bullet .measure.s0 { fill: #29C0DE; }
-.bullet .measure.s1 { fill: #295FDE; }
-.bullet .title { font-size: 14px; font-weight: bold; }
-.bullet .subtitle { fill: #999; }
-
-
-.bullet .measure.primary1 { 
-  fill: #295FDE; 
-}
-.bullet .measure.primary1.attention { 
-  fill: #dd0110; 
-}
-.bullet .measure.secondary1 { 
-  fill: #ffffff; 
-  stroke: #777; 
-  stroke-width: .5px; 
-  stroke-dasharray:1,1;
-}
-.bullet .measure.secondary { 
+.tg-bulletchart .tg-bulletchart__bullet { fill: #29C0DE; }
+.tg-bulletchart .tg-bulletchart__bullet.tg-bulletchart__bullet--primary { fill: #29C0DE; }
+.tg-bulletchart .tg-bulletchart__bullet.tg-bulletchart__bullet--secondary { 
   fill: #FFF9B0; 
   stroke: #777; 
   stroke-width: .5px; 
@@ -150,7 +123,7 @@ var inrange = true;
 function resizeGraph() {
   console.log("===RESIZE===");
   $('svg', '#expensechart').remove();
-  drawGraph();
+  drawGraph(true);
 }
 
 function randomize(d) {
@@ -188,13 +161,13 @@ var chart = null;
 var margin = {top: 5, right: 10, bottom: 30, left: 10};
 var height = 80 - margin.top - margin.bottom;
 
-function drawGraph() {
+function drawGraph(supressAnimation) {
     var graphContainer = $('#expensechart');
     var containerWidth = graphContainer.width();
     var width = containerWidth  - margin.left - margin.right;
     //    height = 60 - margin.top - margin.bottom;
 
-    chart = d3.tgBullet()
+    chart = d3.tgBulletChart()
         .width(width)
         .height(height)
         .tickFormat(function(d){return "$" + d});
@@ -202,12 +175,18 @@ function drawGraph() {
     var svg = d3.select("#expensechart").selectAll("svg")
         .data(graphData)
       .enter().append("svg")
-        .attr("class", "bullet")
+        .attr("class", "tg-bulletchart")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
       .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-        .call(chart);
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    if(supressAnimation) {
+      svg.call(chart);
+    }
+    else {
+      svg.call(chart);
+    }
 }
 
 $(function(){
@@ -222,7 +201,7 @@ $(function(){
       width = containerWidth - margin.left - margin.right,
       height = 100 - margin.top - margin.bottom;
 */
-  chart = d3.tgBullet()
+  chart = d3.tgBulletChart()
       .width(width)
       .height(height);
 
@@ -232,12 +211,12 @@ $(function(){
 
     d3.selectAll("button").on("click", function() {
        var svg = d3.select("#expensechart").selectAll("svg");
-      svg.datum(randomize).call(chart.duration(1000)); // TODO automatic transition
+      svg.datum(randomize).call(chart); // TODO automatic transition
     });
 
     d3.selectAll("#monthSelector").on("change", function() {
        var svg = d3.select("#expensechart").selectAll("svg");
-      svg.datum(randomize).call(chart.duration(1000)); // TODO automatic transition
+      svg.datum(randomize).call(chart); // TODO automatic transition
     });
   });
 
