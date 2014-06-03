@@ -1,15 +1,18 @@
 [
 	{
+		"id": "fixed-expenses",
 		"title":"Fixed",
 		"subtitle":"US$, in thousands",
-		"ranges":[50,80,100],
-		"measures":[92,87],
-		"markers":[86, 80],
+		"units": "Dollars",
+		"markers":[86, 50],
+		"markerTooltips":["Current Target $86K", "Fixed Expense One Year Ago $50K"],
 		"primaryValue": 72,
+		"primaryValueTooltip": "Current Fixed Expense $72K",
 		"secondaryValue": 50,
+		"secondaryValueTooltip": "Previous Month Fixed Expense $72K",
 		"rangeLow": 60,
 		"rangeHigh": 75,
-		"chartmax": 100,
-		"chartmin": 0
+		"rangeTooltip": "Acceptable Range is between $60K and $75K",
+		"chartMax": 100
 	}
 ]

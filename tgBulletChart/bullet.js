@@ -1,73 +1,37 @@
-(function() {
-
-// Chart design based on the recommendations of Stephen Few. Implementation
+// tgBullet
+// This is a D3 Plugin for drawing a Bullet Chart using D#
+// The code for this plugin was modified from the source
+// of the D# bullet chart example that can be found at:
+// http://bl.ocks.org/mbostock/4061961
+// 
+// NOTE: This example was based on the recommendations of Stephen Few. Implementation
 // based on the work of Clint Ivy, Jamie Love, and Jason Davies.
 // http://projects.instantcognition.com/protovis/bulletchart/
-d3.bullet = function() {
+
+
+(function() {
+
+d3.tgBullet = function() {
   var reverse = false,
       duration = 0,
       markers = bulletMarkers,
-      primaryValue = bulletPrimaryValue,
-      secondaryValue = bulletSecondaryValue,
-      width = 380,
+      width = 300,
       height = 30,
+      inRangeColor = "#295FDE",
+      outOfRangeColor = "#DD0110",
       tickFormat = null;
-
-  function getChartMax(d) {
-    var max = 0;
-    if(typeof d.chartmax !== 'undefined') {
-      max = d.chartmax;
-    }
-    else {
-      if(d.primaryValue && max < d.primaryValue) {
-        max = d.primaryValue;
-      }
-      if(d.secondaryValue && max < d.secondaryValue) {
-        max = d.secondaryValue;
-      }
-      var index = 0;
-      var current = 0;
-      if(d.markers) {
-        for(index = 0; index < d.markers.length; index++) {
-          current = d.markers[index];
-          if(current > max) {
-            max = current;
-          }
-        }
-      }
-      if(d.rangeLow) {
-        if(d.rangeLow > max) {
-          max = d.rangeLow;
-        }
-      }
-      if(d.rangeHigh) {
-        if(d.rangeHigh > max) {
-          max = d.rangeHigh;
-        }
-      }
-    }
-    return max;
-  }
-
-  function getChartMin(d) {
-    var min = 0;
-    if(typeof d.chartmin !== 'undefined') {
-      max = d.chartmax;
-    }
-    return min;
-  }
 
   // For each small multiple…
   function bullet(g) {
     g.each(function(d, i) {
-
+      var data = d;
       var markerz = markers.call(this, d, i).slice();
       var g = d3.select(this);
-      var max = getChartMax(d); // add some margin
+      var chartmax = getChartMax(d); // add some margin
 
       // Compute the new x-scale.
       var x1 = d3.scale.linear()
-          .domain([0, max])
+          .domain([0, chartmax])
           .range(reverse ? [width, 0] : [0, width]);
 
       // Retrieve the old x-scale, if this is an update.
@@ -84,7 +48,7 @@ d3.bullet = function() {
 
       // draw a background for the bullet chart
       var background = g.selectAll("rect.background")
-        .data([max]);
+        .data([chartmax]);
       background.enter().append("rect")
           .attr("class", "background")
           .attr("width", w0)
@@ -101,127 +65,94 @@ d3.bullet = function() {
           .attr("width", w1)
           .attr("height", height);
 
-
       var rangeBottom = null;
       var rangeTop = null;
 
-
       // draw the range
       if(d.rangeLow || d.rangeHigh) {
-
         var rangeBottom = d.rangeLow || 0;
-        var rangeTop = d.rangeHigh || max;
+        var rangeTop = d.rangeHigh || chartmax;
+
         var acceptableRange = g.selectAll("rect.range")
             .data([{bottom: rangeBottom, top: rangeTop}]);
 
         var scaleForRange = w1;
         var previousScaleForRange = w0;
 
-
         acceptableRange.enter().append("rect")
             .attr("class", "range")
             .attr("width", function(d,i) {return previousScaleForRange(d.top - d.bottom);})
             .attr("height", height)
-            .attr("x", function(d,i) {return previousScaleForRange(d.bottom);})
+            .attr("x", function(d,i) {return reverse ? previousScaleForRange(chartmax - d.top) : previousScaleForRange(d.bottom);})
+            .append("svg:title").text(function(d) {return getToolTip("range", data, d)})
           .transition()
             .duration(duration)
             .attr("width", function(d,i) {return scaleForRange(d.top - d.bottom);})
-            .attr("x", function(d,i) {return scaleForRange(d.bottom);});
+            .attr("x", function(d,i) {return reverse ? scaleForRange(chartmax - d.top) : scaleForRange(d.bottom);});
 
         acceptableRange.transition()
             .duration(duration)
-            .attr("x", function(d,i) {return scaleForRange(d.bottom);})
+            .attr("x", function(d,i) {return reverse ? scaleForRange(chartmax - d.top) : scaleForRange(d.bottom);})
             .attr("width", function(d,i) {return scaleForRange(d.top - d.bottom);})
             .attr("height", height);
 
+        acceptableRange.select("title").text(function(d) {return getToolTip("range", data, d)});
       }
 
       if(d.secondaryValue) {
         var secondaryBullet = g.selectAll("rect.measure.secondary")
             .data([d.secondaryValue]);
 
-      secondaryBullet.enter().append("rect")
-          .attr("class", "measure secondary")
-          .attr("width", w0)
-          .attr("height", height - (height / 2.5))
-          .attr("x", reverse ? x0 : 0)
-          .attr("y", height / 5)
-        .transition()
-          .duration(duration)
-          .attr("width", w1)
-          .attr("x", reverse ? x1 : 0);
+        secondaryBullet.enter().append("rect")
+            .attr("class", "measure secondary")
+            .attr("width", function(d,i) {return previousScaleForRange(d);})
+            .attr("height", height - (height / 2.5))
+            .attr("x", function(d,i) {return reverse ? previousScaleForRange(d) : 0;})
+            .attr("y", height / 5)
+            .append("svg:title").text(function(d) {return getToolTip("secondary", data, d)})
+          .transition()
+            .duration(duration)
+            .attr("width", w1)
+            .attr("x", reverse ? x1 : 0);
 
-      secondaryBullet.transition()
-          .duration(duration)
-          .attr("width", w1)
-          .attr("height", height - (height / 2.5))
-          .attr("x", reverse ? x1 : 0)
-          .attr("y", height / 5);
 
+        secondaryBullet.transition()
+            .duration(duration)
+            .attr("width", function(d,i) {return scaleForRange(d);})
+            .attr("height", height - (height / 2.5))
+            .attr("x", function(d,i) {return reverse ? scaleForRange(d) : 0;})
+            .attr("y", height / 5);
+
+        secondaryBullet.select("title").text(function(d) {return getToolTip("secondary", data, d)});
       }
 
       if(d.primaryValue) {
         var primaryBullet = g.selectAll("rect.measure.primary")
             .data([d.primaryValue]);
 
-function setBulletColor(value, rangeBottom, rangeTop) {
-  var color = "#295FDE";
-  var needsAttention = false;
-  if(rangeBottom && rangeBottom > value) {
-    needsAttention = true;
-  }
-  if(rangeTop && rangeTop < value) {
-    needsAttention = true;
-  }
-  if(needsAttention) {
-    color = "#dd0110";
-  }
-  else {
-    color = "#295FDE";
-  }
-  return color;
-}
+        primaryBullet.enter().append("rect")
+            .attr("class", "measure primary")
+            .style("fill", function(d, i) {return setBulletColor(d, rangeBottom, rangeTop, inRangeColor, outOfRangeColor);})
+            .attr("width", w0)
+            .attr("height", height / 3)
+            .attr("x", reverse ? x0 : 0)
+            .attr("y", height / 3)
+            .append("svg:title").text(function(d) {return getToolTip("primary", data, d)})
+          .transition()
+            .duration(duration)
+            .attr("width", w1)
+            .attr("x", reverse ? x1 : 0);
 
-function transitionBulletColor(d3element, value, rangeBottom, rangeTop) {
-  var needsAttention = false;
-  if(rangeBottom && rangeBottom > value) {
-    needsAttention = true;
-  }
-  if(rangeTop && rangeTop < value) {
-    needsAttention = true;
-  }
-  if(needsAttention) {
-    window.console.log("NEEDS ATTENTION");
-    d3element.transition().delay(1000).duration(1000).style("fill", "#dd0110");
-    //d3element.transition().delay(1000).duration(1000).style("class", "measure primary attention");
-  }
-  else {
-    d3element.transition().delay(1000).duration(1000).style("fill", "#295FDE");
-  }
-}
+        primaryBullet.transition()
+            .duration(duration)
+            .attr("width", w1)
+            .attr("height", height / 3)
+            .attr("x", reverse ? x1 : 0)
+            .attr("y", height / 3);
 
-      primaryBullet.enter().append("rect")
-          .attr("class", "measure primary")
-          .style("fill", function(d, i) {return setBulletColor(d, rangeBottom, rangeTop);})
-          .attr("width", w0)
-          .attr("height", height / 3)
-          .attr("x", reverse ? x0 : 0)
-          .attr("y", height / 3)
-        .transition()
-          .duration(duration)
-          .attr("width", w1)
-          .attr("x", reverse ? x1 : 0);
+        primaryBullet.select("title").text(function(d) {return getToolTip("primary", data, d)});
 
-      primaryBullet.transition()
-          .duration(duration)
-          .attr("width", w1)
-          .attr("height", height / 3)
-          .attr("x", reverse ? x1 : 0)
-          .attr("y", height / 3);
-
-
-transitionBulletColor(primaryBullet, d.primaryValue, d.rangeLow, d.rangeHigh);
-
+        transitionBulletColor(primaryBullet, d.primaryValue, d.rangeLow, d.rangeHigh, inRangeColor, outOfRangeColor);
       }
 
       // Update the marker lines.
@@ -234,6 +165,7 @@ transitionBulletColor(primaryBullet, d.primaryValue, d.rangeLow, d.rangeHigh);
           .attr("x2", x0)
           .attr("y1", 0 - height / 6)
           .attr("y2", height + height / 6)
+          .append("svg:title").text(function(d, i) {return getToolTip("marker", data, d, i)})
         .transition()
           .duration(duration)
           .attr("x1", x1)
@@ -246,12 +178,14 @@ transitionBulletColor(primaryBullet, d.primaryValue, d.rangeLow, d.rangeHigh);
           .attr("y1", 0 - height / 6)
           .attr("y2", height + height / 6);
 
+      marker.select("title").text(function(d) {return getToolTip("marker", data, d, i)});
+
       // Compute the tick format.
       var format = tickFormat || x1.tickFormat(5);
 
       // Update the tick groups.
       var tick = g.selectAll("g.tick")
-          .data(x1.ticks(8), function(d) {
+          .data(x1.ticks(5), function(d) {
             return this.textContent || format(d);
           });
 
@@ -325,6 +259,18 @@ transitionBulletColor(primaryBullet, d.primaryValue, d.rangeLow, d.rangeHigh);
     return bullet;
   };
 
+  bullet.inRangeColor = function(x) {
+    if (!arguments.length) return inRangeColor;
+    inRangeColor = x;
+    return bullet;
+  };
+
+  bullet.outOfRangeColor = function(x) {
+    if (!arguments.length) return outOfRangeColor;
+    outOfRangeColor = x;
+    return bullet;
+  };
+
   bullet.duration = function(x) {
     if (!arguments.length) return duration;
     duration = x;
@@ -334,15 +280,125 @@ transitionBulletColor(primaryBullet, d.primaryValue, d.rangeLow, d.rangeHigh);
   return bullet;
 };
 
-function bulletMarkers(d) {
-  return d.markers;
+function getToolTip(type, data, d, i) {
+  var tooltip = "";
+  switch(type)  {
+    case "primary":
+      tooltip = data.primaryValueTooltip || d;
+      break;
+    case "secondary":
+      tooltip = data.secondaryValueTooltip || d;
+      break;
+    case "range":
+      if(data.rangeTooltip) {
+        tooltip = data.rangeTooltip;
+      }
+      else if(data.rangeLow && data.rangeHigh) {
+        tooltip = "between " + data.rangeLow + " and " + data.rangeHigh;
+      }
+      else if(data.rangeHigh) {
+        tooltip = "above " + data.rangeHigh;
+      }
+      else if(data.rangeLow) {
+        tooltip = "atleast " + data.rangeHigh;
+      }
+      break;
+    case "marker":
+      if(data.markerTooltips){
+        if(i < data.markerTooltips.length) {
+          tooltip = data.markerTooltips[i];
+        }
+      }
+      if(tooltip === "") {
+        tooltip = data.markers[i];
+      }
+      break;
+  }
+  return tooltip;
 }
 
-function bulletPrimaryValue(d) {
-  return d.primaryValue;
+function getChartMax(d) {
+  var max = 0;
+  if(typeof d.chartMax !== 'undefined') {
+    max = d.chartMax;
+  }
+  else {
+    var index = 0;
+    var current = 0;
+    if(d.primaryValue && max < d.primaryValue) {
+      max = d.primaryValue;
+    }
+    if(d.secondaryValue && max < d.secondaryValue) {
+      max = d.secondaryValue;
+    }
+    if(d.markers) {
+      for(index = 0; index < d.markers.length; index++) {
+        current = d.markers[index];
+        if(current > max) {
+          max = current;
+        }
+      }
+    }
+    if(d.rangeLow) {
+      if(d.rangeLow > max) {
+        max = d.rangeLow;
+      }
+    }
+    if(d.rangeHigh) {
+      if(d.rangeHigh > max) {
+        max = d.rangeHigh;
+      }
+    }
+  }
+  if(d.chartMaxBuffer) {
+    switch(d.chartMaxBufferType) {
+      case "percent":
+        max = max + (max * d.chartMaxBuffer/100);
+        break;
+      default:
+        max = max + d.chartMaxBuffer;
+        break;
+    }
+  }
+  return max;
 }
-function bulletSecondaryValue(d) {
-  return d.secondaryValue;
+
+function setBulletColor(value, rangeBottom, rangeTop, inRangeColor, outOfRangeColor) {
+  var color = "#295FDE";
+  var needsAttention = false;
+  if(rangeBottom && rangeBottom > value) {
+    needsAttention = true;
+  }
+  if(rangeTop && rangeTop < value) {
+    needsAttention = true;
+  }
+  if(needsAttention) {
+    color = outOfRangeColor;
+  }
+  else {
+    color = inRangeColor;
+  }
+  return color;
+}
+
+function transitionBulletColor(d3element, value, rangeBottom, rangeTop, inRangeColor, outOfRangeColor) {
+  var needsAttention = false;
+  if(rangeBottom && rangeBottom > value) {
+    needsAttention = true;
+  }
+  if(rangeTop && rangeTop < value) {
+    needsAttention = true;
+  }
+  if(needsAttention) {
+    d3element.transition().delay(1000).duration(1000).style("fill", outOfRangeColor);
+  }
+  else {
+    d3element.transition().delay(1000).duration(1000).style("fill", inRangeColor);
+  }
+}
+
+function bulletMarkers(d) {
+  return d.markers;
 }
 
 function bulletTranslate(x) {
