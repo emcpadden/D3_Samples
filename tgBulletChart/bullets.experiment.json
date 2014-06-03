@@ -9,6 +9,7 @@
 		"secondaryValue": 50,
 		"rangeLow": 60,
 		"rangeHigh": 75,
-		"max": 100
+		"chartmax": 100,
+		"chartmin": 0
 	}
 ]

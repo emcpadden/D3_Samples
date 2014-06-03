@@ -4,65 +4,66 @@
 // based on the work of Clint Ivy, Jamie Love, and Jason Davies.
 // http://projects.instantcognition.com/protovis/bulletchart/
 d3.bullet = function() {
-  var orient = "left", // TODO top & bottom
-      reverse = false,
+  var reverse = false,
       duration = 0,
-      ranges = bulletRanges,
       markers = bulletMarkers,
-      measures = bulletMeasures,
       primaryValue = bulletPrimaryValue,
       secondaryValue = bulletSecondaryValue,
       width = 380,
       height = 30,
       tickFormat = null;
 
-  function getMaxValue(d) {
+  function getChartMax(d) {
     var max = 0;
-    if(d.primaryValue && max < d.primaryValue) {
-      max = d.primaryValue;
+    if(typeof d.chartmax !== 'undefined') {
+      max = d.chartmax;
     }
-    if(d.secondaryValue && max < d.secondaryValue) {
-      max = d.secondaryValue;
-    }
-    var index = 0;
-    var current = 0;
-    if(d.markers) {
-      for(index = 0; index < d.markers.length; index++) {
-        current = d.markers[index];
-        if(current > max) {
-          max = current;
+    else {
+      if(d.primaryValue && max < d.primaryValue) {
+        max = d.primaryValue;
+      }
+      if(d.secondaryValue && max < d.secondaryValue) {
+        max = d.secondaryValue;
+      }
+      var index = 0;
+      var current = 0;
+      if(d.markers) {
+        for(index = 0; index < d.markers.length; index++) {
+          current = d.markers[index];
+          if(current > max) {
+            max = current;
+          }
         }
       }
-    }
-    if(d.measures) {
-      for(index = 0; index < d.measures.length; index++) {
-        current = d.measures[index];
-        if(current > max) {
-          max = current;
+      if(d.rangeLow) {
+        if(d.rangeLow > max) {
+          max = d.rangeLow;
         }
       }
-    }
-    if(d.ranges) {
-      for(index = 0; index < d.ranges.length; index++) {
-        current = d.ranges[index];
-        if(current > max) {
-          max = current;
+      if(d.rangeHigh) {
+        if(d.rangeHigh > max) {
+          max = d.rangeHigh;
         }
       }
     }
     return max;
   }
 
+  function getChartMin(d) {
+    var min = 0;
+    if(typeof d.chartmin !== 'undefined') {
+      max = d.chartmax;
+    }
+    return min;
+  }
+
   // For each small multiple…
   function bullet(g) {
     g.each(function(d, i) {
 
-      var rangez = ranges.call(this, d, i).slice().sort(d3.descending),
-          markerz = markers.call(this, d, i).slice().sort(d3.descending),
-          measurez = measures.call(this, d, i).slice().sort(d3.descending),
-          g = d3.select(this);
-
-      var max = getMaxValue(d) + 20; // add some margin
+      var markerz = markers.call(this, d, i).slice();
+      var g = d3.select(this);
+      var max = getChartMax(d); // add some margin
 
       // Compute the new x-scale.
       var x1 = d3.scale.linear()
@@ -135,50 +136,6 @@ d3.bullet = function() {
 
       }
 
-/*
-      // Update the range rects.
-      var range = g.selectAll("rect.range")
-          .data(rangez);
-
-      range.enter().append("rect")
-          .attr("class", function(d, i) { return "range s" + i; })
-          .attr("width", w0)
-          .attr("height", height)
-          .attr("x", reverse ? x0 : 0)
-        .transition()
-          .duration(duration)
-          .attr("width", w1)
-          .attr("x", reverse ? x1 : 0);
-
-      range.transition()
-          .duration(duration)
-          .attr("x", reverse ? x1 : 0)
-          .attr("width", w1)
-          .attr("height", height);
-*/
-      // Update the measure rects.
-      /*
-      var measure = g.selectAll("rect.measure")
-          .data(measurez);
-
-      measure.enter().append("rect")
-          .attr("class", function(d, i) { return "measure s" + i; })
-          .attr("width", w0)
-          .attr("height", height / 3)
-          .attr("x", reverse ? x0 : 0)
-          .attr("y", height / 3)
-        .transition()
-          .duration(duration)
-          .attr("width", w1)
-          .attr("x", reverse ? x1 : 0);
-
-      measure.transition()
-          .duration(duration)
-          .attr("width", w1)
-          .attr("height", height / 3)
-          .attr("x", reverse ? x1 : 0)
-          .attr("y", height / 3);
-*/
       if(d.secondaryValue) {
         var secondaryBullet = g.selectAll("rect.measure.secondary")
             .data([d.secondaryValue]);
@@ -267,29 +224,6 @@ transitionBulletColor(primaryBullet, d.primaryValue, d.rangeLow, d.rangeHigh);
 
       }
 
-
-/*
-      primaryBullet.enter().append("rect")
-          .attr("class", function(d, i) {return setPrimaryBulletClass(d, rangeBottom, rangeTop);})
-          .attr("width", w0)
-          .attr("height", height / 3)
-          .attr("x", reverse ? x0 : 0)
-          .attr("y", height / 3)
-        .transition()
-          .duration(duration)
-          .attr("width", w1)
-          .attr("x", reverse ? x1 : 0);
-
-      primaryBullet.transition()
-          .duration(duration)
-          .attr("class", function(d, i) {return setPrimaryBulletClass(d, rangeBottom, rangeTop);})
-          .attr("width", w1)
-          .attr("height", height / 3)
-          .attr("x", reverse ? x1 : 0)
-          .attr("y", height / 3);
-
-      }
-*/
       // Update the marker lines.
       var marker = g.selectAll("line.marker")
           .data(markerz);
@@ -366,32 +300,10 @@ transitionBulletColor(primaryBullet, d.primaryValue, d.rangeLow, d.rangeHigh);
     d3.timer.flush();
   }
 
-  // left, right, top, bottom
-  bullet.orient = function(x) {
-    if (!arguments.length) return orient;
-    orient = x;
-    reverse = orient == "right" || orient == "bottom";
-    return bullet;
-  };
-
-  // ranges (bad, satisfactory, good)
-  bullet.ranges = function(x) {
-    if (!arguments.length) return ranges;
-    ranges = x;
-    return bullet;
-  };
-
   // markers (previous, goal)
   bullet.markers = function(x) {
     if (!arguments.length) return markers;
     markers = x;
-    return bullet;
-  };
-
-  // measures (actual, forecast)
-  bullet.measures = function(x) {
-    if (!arguments.length) return measures;
-    measures = x;
     return bullet;
   };
 
@@ -422,16 +334,8 @@ transitionBulletColor(primaryBullet, d.primaryValue, d.rangeLow, d.rangeHigh);
   return bullet;
 };
 
-function bulletRanges(d) {
-  return d.ranges;
-}
-
 function bulletMarkers(d) {
   return d.markers;
-}
-
-function bulletMeasures(d) {
-  return d.measures;
 }
 
 function bulletPrimaryValue(d) {
