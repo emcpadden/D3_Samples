@@ -177,14 +177,14 @@ d3.tgBulletChart = function() {
       var format = tickFormat || x1.tickFormat(5);
 
       // Update the tick groups.
-      var tick = g.selectAll("g.tick")
+      var tick = g.selectAll("g.tg-bulletchart__tick")
           .data(x1.ticks(5), function(d) {
             return this.textContent || format(d);
           });
 
       // Initialize the ticks with the old scale, x0.
       var tickEnter = tick.enter().append("g")
-          .attr("class", "tick")
+          .attr("class", "tg-bulletchart__tick")
           .attr("transform", bulletTranslate(x1))
           .style("opacity", 1e-6);
 
