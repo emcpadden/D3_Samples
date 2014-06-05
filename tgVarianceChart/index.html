@@ -10,30 +10,28 @@ body {
   position: relative;
 }
 
-.tg-bulletchart { font-size: 10px; }
-.tg-bulletchart__marker { stroke: #000; stroke-width: 2px; }
-.tg-bulletchart__marker.tg-bulletchart__marker--1 { stroke-dasharray:1px,2px; }
-.tg-bulletchart__tick line { stroke: #666; stroke-width: .5px; }
+.tg-variancechart { font-size: 10px; }
+.tg-variancechart__marker { stroke: #000; stroke-width: 2px; }
+.tg-variancechart__marker.tg-variancechart__marker--1 { stroke-dasharray:1px,2px; }
+.tg-variancechart__tick line { stroke: #666; stroke-width: .5px; }
 
 
-.tg-bulletchart__background {
+.tg-variancechart__zero {
+  stroke: #000; stroke-width: 2px;
+}
+
+.tg-variancechart__background {
   fill: #ccc;  stroke: #aaa; stroke-width: 1px;
 }
 
 
-.tg-bulletchart__range { 
+.tg-variancechart__range { 
   fill: #f5f5f5; 
   stroke: #777; 
   stroke-width: .5px; 
   stroke-dasharray:1,2;
 }
-.tg-bulletchart__bullet { fill: #29C0DE; }
-.tg-bulletchart__bullet.tg-bulletchart__bullet--primary { fill: #29C0DE; }
-.tg-bulletchart__bullet.tg-bulletchart__bullet--secondary { 
-  fill: #FFF9B0; 
-  stroke: #777; 
-  stroke-width: .5px; 
-}
+.tg-variancechart__bar { fill: #29C0DE; }
 
 .colorbox {
   display: 'inline-block';
@@ -73,7 +71,7 @@ body {
 </style>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="bullet.js"></script>
+<script src="variance.js"></script>
 <script>
 
 (function($,sr){
@@ -118,41 +116,34 @@ $(window).smartresize(function(){
   resizeGraph();
 });
 
-var inrange = true;
+var positive = true;
 
 function resizeGraph() {
   console.log("===RESIZE===");
-  $('svg', '#expensechart').remove();
+  $('svg', '#variancechart').remove();
   drawGraph(true);
 }
 
 function randomize(d) {
-  if (!d.randomizer) d.randomizer = randomizer(d);
-  d.markers = d.markers.map(d.randomizer);
-
-  var low = 60;
-  var high = 80;
-  var value = 70;
-  if(!inrange) {
-    low = 70;
-    high = 90;
-    value = 60;
+  if(!positive) {
+    value = -3;
+    d.rangeLow = -6;
+    d.rangeHigh = 3;
+    d.markers = [7, -2];
   }
-  inrange = !inrange;
-  d.primaryValue = value;
-  d.primaryValueTooltipxxx = "The new primary value is " + value;
-  d.secondaryValue = d.randomizer(d.secondaryValue);
-  d.rangeLow = low;
-  d.rangeHigh = high;
+  else {
+    value = 5;
+    d.rangeLow = -3;
+    d.rangeHigh = 4;
+    d.markers = [5, -7];
+  }
+  positive = !positive;
+
+  d.value = value;
+
   return d;
 }
 
-function randomizer(d) {
-  var k = d3.max(d.markers) * .2;
-  return function(d) {
-    return Math.max(0, d + k * (Math.random() - .5));
-  };
-}
 
 var graphData = null;
 var chart = null;
@@ -163,20 +154,20 @@ var margin = {top: 5, right: 20, bottom: 20, left: 10};
 var height = 80 - margin.top - margin.bottom;
 
 function drawGraph(supressAnimation) {
-    var graphContainer = $('#expensechart');
+    var graphContainer = $('#variancechart');
     var containerWidth = graphContainer.width();
     var width = containerWidth  - margin.left - margin.right;
     //    height = 60 - margin.top - margin.bottom;
 
-    chart = d3.tgBulletChart()
+    chart = d3.tgVarianceChart()
         .width(width)
         .height(height)
-        .tickFormat(function(d){return "$" + d});
+        .tickFormat(function(d){return d + "%"});
 
-    var svg = d3.select("#expensechart").selectAll("svg")
+    var svg = d3.select("#variancechart").selectAll("svg")
         .data(graphData)
       .enter().append("svg")
-        .attr("class", "tg-bulletchart")
+        .attr("class", "tg-variancechart")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
       .append("g")
@@ -192,7 +183,7 @@ function drawGraph(supressAnimation) {
 
 $(function(){
 
-  var graphContainer = $('#expensechart');
+  var graphContainer = $('#variancechart');
   var containerWidth = graphContainer.width();
 
   var width = containerWidth  - margin.left - margin.right;
@@ -202,22 +193,17 @@ $(function(){
       width = containerWidth - margin.left - margin.right,
       height = 100 - margin.top - margin.bottom;
 */
-  chart = d3.tgBulletChart()
+  chart = d3.tgVarianceChart()
       .width(width)
       .height(height);
 
-  d3.json("bullets.experiment.json", function(error, data) {
+  d3.json("variance.json", function(error, data) {
     graphData = data;
     drawGraph();
 
-    d3.selectAll("button").on("click", function() {
-       var svg = d3.select("#expensechart").selectAll("svg");
-      svg.datum(randomize).call(chart); // TODO automatic transition
-    });
-
     d3.selectAll("#monthSelector").on("change", function() {
-       var svg = d3.select("#expensechart").selectAll("svg");
-      svg.datum(randomize).call(chart); // TODO automatic transition
+       var svg = d3.select("#variancechart").selectAll("svg");
+      svg.datum(randomize(data[0])).call(chart); // TODO automatic transition
     });
   });
 
@@ -229,9 +215,10 @@ $(function(){
 </head>
 <body>
   <div style="padding: 10px;">
-    <h1>Asset Type Expenses - Bullet Chart Example</h1>
-    <p>A bullet chart is similar to a bar graph but it can show lots more information in a smaller space.</p>
-    <p>This example illustrates one possibility of what we might be able to show on a chart of this type.  Since we have the code, we will have lots of flexibility to make this work anyway we'd like.</p>
+    <h1>Variance Chart Example</h1>
+    <div style="padding 20px">
+          <div id="variancechart" style="background: #eff0ff; margin: 5px 20px 20px 10px;"></div>
+    </div>
     <div><label>Month: 
       <select id="monthSelector">
         <option selected>May 2014</option></option>
@@ -242,17 +229,6 @@ $(function(){
         <option>December 2013</option></option>
       </select></div>
     </div>
-    <p>
-      <h3 style="display: inline-block;">Legend: </h3>
-      <div class="legendItem"><span class="colorbox low">&nbsp;&nbsp;&nbsp;</span> <span>Low Range</span></div>
-      <div class="legendItem"><span class="colorbox acceptable">&nbsp;&nbsp;&nbsp;</span> <span>Acceptable Range</span></div>
-      <div class="legendItem"><span class="colorbox high">&nbsp;&nbsp;&nbsp;</span> <span>High Range</span></div>
-      <div class="legendItem"><span class="colorbox current">&nbsp;&nbsp;&nbsp;</span> <span>Current Expense</span></div>
-      <div class="legendItem"><span class="colorbox max">&nbsp;&nbsp;&nbsp;</span> <span>Highest Over Past Year</span></div></br>
-      <div class="legendItem"><span style="width: 1px; height: 10px; border: 2px solid #000"></span>&nbsp;<span>Forecasted Expense</span></div>
-      <div class="legendItem"><span style="width: 1px; height: 10px; border: 2px dotted #000"></span>&nbsp;<span>One Year Ago</span></div>
-    </p>      
-    <div id="expensechart" style="backgroundx: #eff0ff; margin: 5px 20px 20px 10px;"></div>
   </div>
 </body>
 </html>

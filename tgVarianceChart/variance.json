@@ -1,0 +1,13 @@
+[
+	{
+		"value": 3,
+		"tooltip": "Current Fixed Expense $72K",
+		"rangeLow": -4,
+		"rangeHigh": 4,
+		"rangeTooltip": "Acceptable Range is between -20% and +20%",
+		"markers":[2, -5],
+		"markerTooltips":["Current Target $86K", "Fixed Expense One Year Ago $50K"],
+		"chartRangeMin": -10,
+		"chartRangeMax": 10
+	}
+]
