@@ -22,35 +22,32 @@
 (function() {
 
 d3.tgVarianceChart = function() {
-  /*
-  var duration = 800,
-      markers = bulletMarkers,
-      width = 300,
-      height = 30,
-      inRangeColor = "#295FDE",
-      outOfRangeColor = "#DD0110",
-      tickFormat = null;
-*/
+  var duration = 800,             // this is the duration of the animations
+      width = 300,                // the width of the chart
+      markers = varianceMarkers,  // any markers that should be displayed
+      height = 30,                // the height of the chart
+      tickFormat = null;          // a function that can be used to format the tick values
 
-  var duration = 800,
-      width = 300,
-      markers = varianceMarkers,
-      height = 30,
-      tickFormat = null;
-
-  var inRangeColor = "#295FDE",
-      outOfRangeColor = "#DD0110";
+  var inRangeColor = "#295FDE";       // This is the color of a bar that is within range
+  var inRangeColorAlt = "#6487D9";    // This is an alternate color (usually a lighter shade of the one above),
+                                      //    This is used when we are animating a out of range value to the other side
+                                      //    of the zero mark.  After the animation, the bar is colored according to whether
+                                      //    the new value is in range or out of range.  This color is only shown during a
+                                      //    navigation that crosses the zero line.
+  var outOfRangeColor = "#DD0110";    // This is the color of a bar that is out of range
+  var outOfRangeColorAlt = "#DE5B64"; // This is an alternate color (usually a lighter shade of the one above),
+                                      //    This is used when we are animating a out of range value to the other side
+                                      //    of the zero mark.  After the animation, the bar is colored according to whether
+                                      //    the new value is in range or out of range.  This color is only shown during a
+                                      //    navigation that crosses the zero line.
 
   // For each small multiple…
   function variance(g) {
     g.each(function(d, i) {
 
-      //var width = 300;
-
       var data = d;
       var g = d3.select(this);
 
-      //var width = 300;
       var markerz = markers.call(this, d, i).slice();
 
       var chartmax = d.chartRangeMax;
@@ -157,8 +154,8 @@ d3.tgVarianceChart = function() {
             .attr("y", barpositiony);
 
         negativeBar.select("title").text(function(d) {return getToolTip("value", data, d);});
-
-        transitionBarColor(negativeBar, d.value, d.rangeLow, d.rangeHigh, inRangeColor, outOfRangeColor, duration);
+        
+        transitionBarColor(negativeBar, d.value, d.rangeLow, d.rangeHigh, d.value < 0 ? inRangeColor : inRangeColorAlt, d.value < 0 ? outOfRangeColor : outOfRangeColorAlt, duration);
 
       // draw the positive variance bar (for positive variances)
       var positiveBar = g.selectAll("rect.tg-variancechart__bar--positive")
@@ -186,8 +183,7 @@ d3.tgVarianceChart = function() {
 
         positiveBar.select("title").text(function(d) {return getToolTip("value", data, d);});
 
-        transitionBarColor(positiveBar, d.value, d.rangeLow, d.rangeHigh, inRangeColor, outOfRangeColor, duration);
-
+        transitionBarColor(positiveBar, d.value, d.rangeLow, d.rangeHigh, d.value > 0 ? inRangeColor : inRangeColorAlt, d.value > 0 ? outOfRangeColor : outOfRangeColorAlt, duration);
 
       // draw the zero line
       var marker = g.selectAll("line.tg-variancechart__zero")
@@ -274,7 +270,7 @@ d3.tgVarianceChart = function() {
     });
     d3.timer.flush();
   }
-/*
+
   // markers (previous, goal)
   variance.markers = function(x) {
     if (!arguments.length) {
@@ -283,7 +279,7 @@ d3.tgVarianceChart = function() {
     markers = x;
     return variance;
   };
-*/
+
   variance.width = function(x) {
     if (!arguments.length) {
       return width;
@@ -334,6 +330,7 @@ d3.tgVarianceChart = function() {
 
   return variance;
 };
+
 function getToolTip(type, data, d, i) {
   var tooltip = "";
   switch(type)  {
@@ -448,26 +445,15 @@ function transitionBarColor(d3element, value, rangeBottom, rangeTop, inRangeColo
   }
 }
 
-
 function varianceMarkers(d) {
   return d.markers;
 }
-
 
 function varianceTranslate(x) {
   return function(d) {
     return "translate(" + x(d) + ",0)";
   };
 }
-
-/*
-function varianceWidth(x) {
-  var x0 = x(0);
-  return function(d) {
-    return Math.abs(x(d) - x0);
-  };
-}
-*/
 
 function varianceWidth(x) {
   var x0 = x(0);
