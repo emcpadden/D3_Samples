@@ -1,12 +1,5 @@
-// tgBullet
-// This is a D3 Plugin for drawing a Bullet Chart using D#
-// The code for this plugin was modified from the source
-// of the D# bullet chart example that can be found at:
-// http://bl.ocks.org/mbostock/4061961
-// 
-// NOTE: This example was based on the recommendations of Stephen Few. Implementation
-// based on the work of Clint Ivy, Jamie Love, and Jason Davies.
-// http://projects.instantcognition.com/protovis/bulletchart/
+// tgVarianceChart
+// This is a D3 Plugin for drawing a Variance Chart using D#
 
 //==============================================================================
 // This requires D3.  Go to http://d3js.org/ to download a copy of D3.js or use
@@ -18,6 +11,24 @@
 // IMPORTANT:  This control is currently being used as part of the Matrix Demo
 // project and is subject to change.  Use at your own risk.
 //==============================================================================
+
+//==============================================================================
+// The data format for this plugin is as follows:
+// (note: any additional propertyies will be ignored):
+// {
+//    "value": 3,  // This is the value of the variance bar
+//    "tooltip": [OPTIONAL] "3% Expense increase over last month",  // this is the tooltip displayed on hover of the variance bar.  If this is missing, we display the unformatted value on hover
+//    "rangeLow": -4, // [OPTIONAL] this is the low end of the acceptable range, if this is missing it is set to zero
+//    "rangeHigh": 4, // [OPTIONAL] the high end of the acceptable range, if this is missing it is set to the highest value so that there effectively is no limit on the upper end
+//    "rangeTooltip": "[OPTIONAL] Acceptable Range is between $60K and $75K",
+//    "markers":[2, -5], //[OPTIONAL] this is an array of values to display as markers,classes are added to them to distinguish the order of these
+//    "markerTooltips":["2% is the max increase month to month over the last year", "-1% increase this month last year"], // [OPTIONAL] this is an array of tooltips for the markers, if any are missing, then the unformatted value is displayed
+//    "chartRangeMin": -10 // [OPTIONAL] this is the max value that should be limit the upper end of the chart.  Parts of any values that exceed this are not displayed.  
+//    "chartRangeMax": 10 // [OPTIONAL] this is the min value that should be limit the lower end of the chart.  Parts of any values that exceed this are not displayed.  
+// }
+//
+//
+
 /* global d3:true */
 (function() {
 
@@ -86,17 +97,17 @@ d3.tgVarianceChart = function() {
         .data([chartrange]);
       background.enter().append("rect")
           .attr("class", "tg-variancechart__background")
-          .attr("width", function(d,i){return previousScaleForRange(d.chartmax - d.chartmin);})
-          .attr("x", function(d, i){ 
+          .attr("width", function(d){return previousScaleForRange(d.chartmax - d.chartmin);})
+          .attr("x", function(d){ 
             return previousScaleForPosition(d.chartmin); 
           });
 
       background.transition()
           .duration(duration)
-          .attr("x", function(d, i){ 
+          .attr("x", function(d){ 
             return scaleForPosition(d.chartmin); 
           })
-          .attr("width", function(d, i){ 
+          .attr("width", function(d){ 
             return scaleForRange(d.chartmax - d.chartmin); 
           })
           .attr("height", height);
@@ -116,14 +127,14 @@ d3.tgVarianceChart = function() {
         acceptableRange.enter().append("rect")
             .attr("class", "tg-variancechart__range")
             .attr("height", height)
-            .attr("width", function(d,i) {return previousScaleForRange(d.top - d.bottom);})
-            .attr("x", function(d,i) {return previousScaleForPosition(d.bottom);})
+            .attr("width", function(d) {return previousScaleForRange(d.top - d.bottom);})
+            .attr("x", function(d) {return previousScaleForPosition(d.bottom);})
             .append("svg:title").text(function(d) {return getToolTip("range", data, d);});
 
         acceptableRange.transition()
             .duration(duration)
-            .attr("x", function(d,i) {return scaleForPosition(d.bottom);})
-            .attr("width", function(d,i) {return scaleForRange(d.top - d.bottom);})
+            .attr("x", function(d) {return scaleForPosition(d.bottom);})
+            .attr("width", function(d) {return scaleForRange(d.top - d.bottom);})
             .attr("height", height);
 
         acceptableRange.select("title").text(function(d) {return getToolTip("range", data, d);});
@@ -135,7 +146,7 @@ d3.tgVarianceChart = function() {
 
         negativeBar.enter().append("rect")
             .attr("class", "tg-variancechart__bar tg-variancechart__bar--negative")
-            .style("fill", function(d/*, i*/) {return setBarColor(d, rangeBottom, rangeTop, inRangeColor, outOfRangeColor);})
+            .style("fill", function(d) {return setBarColor(d, rangeBottom, rangeTop, inRangeColor, outOfRangeColor);})
             .attr("width", 0)
             .attr("height", barheight)
             .attr("x", previousScaleForPosition(0))
@@ -143,14 +154,14 @@ d3.tgVarianceChart = function() {
             .append("svg:title").text(function(d) {return getToolTip("value", data, d);})
           .transition()
             .duration(duration)
-            .attr("width", function(d,i) {return (d < 0) ? scaleForRange(0 - d) : 0;})
-            .attr("x", function(d,i) {return (d < 0) ? scaleForPosition(d) : scaleForPosition(0);});
+            .attr("width", function(d) {return (d < 0) ? scaleForRange(0 - d) : 0;})
+            .attr("x", function(d) {return (d < 0) ? scaleForPosition(d) : scaleForPosition(0);});
 
         negativeBar.transition()
             .duration(duration)
-            .attr("width", function(d,i) {return (d < 0) ? scaleForRange(0 - d) : 0;})
+            .attr("width", function(d) {return (d < 0) ? scaleForRange(0 - d) : 0;})
             .attr("height", barheight)
-            .attr("x", function(d,i) {return (d < 0) ? scaleForPosition(d) : scaleForPosition(0);})
+            .attr("x", function(d) {return (d < 0) ? scaleForPosition(d) : scaleForPosition(0);})
             .attr("y", barpositiony);
 
         negativeBar.select("title").text(function(d) {return getToolTip("value", data, d);});
@@ -163,7 +174,7 @@ d3.tgVarianceChart = function() {
 
         positiveBar.enter().append("rect")
             .attr("class", "tg-variancechart__bar tg-variancechart__bar--positive")
-            .style("fill", function(d/*, i*/) {return setBarColor(d, rangeBottom, rangeTop, inRangeColor, outOfRangeColor);})
+            .style("fill", function(d) {return setBarColor(d, rangeBottom, rangeTop, inRangeColor, outOfRangeColor);})
             .attr("width", 0)
             .attr("height", barheight)
             .attr("x", previousScaleForPosition(0))
@@ -171,12 +182,12 @@ d3.tgVarianceChart = function() {
             .append("svg:title").text(function(d) {return getToolTip("value", data, d);})
           .transition()
             .duration(duration)
-            .attr("width", function(d,i) {return (d > 0) ? 0 : scaleForRange(d);})
+            .attr("width", function(d) {return (d > 0) ? 0 : scaleForRange(d);})
             .attr("x", scaleForPosition(0));
 
         positiveBar.transition()
             .duration(duration)
-            .attr("width", function(d,i) {return (d > 0) ? scaleForRange(d) : 0;})
+            .attr("width", function(d) {return (d > 0) ? scaleForRange(d) : 0;})
             .attr("height", barheight)
             .attr("x", scaleForPosition(0))
             .attr("y", barpositiony);
@@ -191,13 +202,13 @@ d3.tgVarianceChart = function() {
 
       marker.enter().append("line")
           .attr("class", "tg-variancechart__zero")
-          .attr("x1", function(d,i) {return scaleForPosition(d); })
-          .attr("x2", function(d,i) {return scaleForPosition(d); })
+          .attr("x1", function(d) {return scaleForPosition(d); })
+          .attr("x2", function(d) {return scaleForPosition(d); })
           .attr("y1", 0 - height / 6)
           .attr("y2", height + height / 6);
 
       // Update the marker lines.
-      var marker = g.selectAll("line.tg-variancechart__marker")
+      marker = g.selectAll("line.tg-variancechart__marker")
           .data(markerz);
 
       marker.enter().append("line")
@@ -206,7 +217,7 @@ d3.tgVarianceChart = function() {
           .attr("x2", x1)
           .attr("y1", 0 - height / 6)
           .attr("y2", height + height / 6)
-          .append("svg:title").text(function(d, i) {return getToolTip("marker", data, d, i);});
+          .append("svg:title").text(function(d) {return getToolTip("marker", data, d, i);});
 
       marker.transition()
           .duration(duration)
@@ -363,52 +374,6 @@ function getToolTip(type, data, d, i) {
       break;
   }
   return tooltip;
-}
-
-function getChartMax(d) {
-  var max = 0;
-  if(typeof d.chartMax !== 'undefined') {
-    max = d.chartMax;
-  }
-  else {
-    var index = 0;
-    var current = 0;
-    if(d.primaryValue && max < d.primaryValue) {
-      max = d.primaryValue;
-    }
-    if(d.secondaryValue && max < d.secondaryValue) {
-      max = d.secondaryValue;
-    }
-    if(d.markers) {
-      for(index = 0; index < d.markers.length; index++) {
-        current = d.markers[index];
-        if(current > max) {
-          max = current;
-        }
-      }
-    }
-    if(d.rangeLow) {
-      if(d.rangeLow > max) {
-        max = d.rangeLow;
-      }
-    }
-    if(d.rangeHigh) {
-      if(d.rangeHigh > max) {
-        max = d.rangeHigh;
-      }
-    }
-  }
-  if(d.chartMaxBuffer) {
-    switch(d.chartMaxBufferType) {
-      case "percent":
-        max = max + (max * d.chartMaxBuffer/100);
-        break;
-      default:
-        max = max + d.chartMaxBuffer;
-        break;
-    }
-  }
-  return max;
 }
 
 function setBarColor(value, rangeBottom, rangeTop, inRangeColor, outOfRangeColor) {
