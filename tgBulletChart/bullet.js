@@ -185,7 +185,7 @@ d3.tgBulletChart = function() {
       // Initialize the ticks with the old scale, x0.
       var tickEnter = tick.enter().append("g")
           .attr("class", "tg-bulletchart__tick")
-          .attr("transform", bulletTranslate(x1))
+          .attr("transform", bulletTranslate(x0))
           .style("opacity", 1e-6);
 
       tickEnter.append("line")

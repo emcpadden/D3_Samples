@@ -119,11 +119,13 @@ $(window).smartresize(function(){
 });
 
 var inrange = true;
+var graphData = null;
+var graphSVG = null;
 
 function resizeGraph() {
   console.log("===RESIZE===");
   $('svg', '#expensechart').remove();
-  drawGraph(true);
+  drawGraph(graphData);
 }
 
 function randomize(d) {
@@ -144,6 +146,8 @@ function randomize(d) {
   d.secondaryValue = d.randomizer(d.secondaryValue);
   d.rangeLow = low;
   d.rangeHigh = high;
+
+  d.chartMax = d.primaryValue + 50;
   return d;
 }
 
@@ -154,40 +158,39 @@ function randomizer(d) {
   };
 }
 
-var graphData = null;
-var chart = null;
-
 
 var margin = {top: 5, right: 20, bottom: 20, left: 10};
 //var margin = {top: 0, right: 0, bottom: 0, left: 0};
 var height = 80 - margin.top - margin.bottom;
 
-function drawGraph(supressAnimation) {
+function drawGraph(data) {
     var graphContainer = $('#expensechart');
     var containerWidth = graphContainer.width();
     var width = containerWidth  - margin.left - margin.right;
     //    height = 60 - margin.top - margin.bottom;
 
-    chart = d3.tgBulletChart()
+    var chart = d3.tgBulletChart()
         .width(width)
-        .height(height)
-        .tickFormat(function(d){return "$" + d});
+        .height(height);
+        //.tickFormat(function(d){return "$" + d});
 
-    var svg = d3.select("#expensechart").selectAll("svg")
-        .data(graphData)
+    graphSVG = d3.select("#expensechart").selectAll("svg")
+        .data(data)
       .enter().append("svg")
         .attr("class", "tg-bulletchart")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
       .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+        .call(chart);;
+/*
     if(supressAnimation) {
       svg.call(chart);
     }
     else {
       svg.call(chart);
     }
+*/    
 }
 
 $(function(){
@@ -202,22 +205,17 @@ $(function(){
       width = containerWidth - margin.left - margin.right,
       height = 100 - margin.top - margin.bottom;
 */
-  chart = d3.tgBulletChart()
+  var chart = d3.tgBulletChart()
       .width(width)
       .height(height);
 
   d3.json("bullets.experiment.json", function(error, data) {
     graphData = data;
-    drawGraph();
+    drawGraph(data);
 
-    d3.selectAll("button").on("click", function() {
-       var svg = d3.select("#expensechart").selectAll("svg");
-      svg.datum(randomize).call(chart); // TODO automatic transition
-    });
 
     d3.selectAll("#monthSelector").on("change", function() {
-       var svg = d3.select("#expensechart").selectAll("svg");
-      svg.datum(randomize).call(chart); // TODO automatic transition
+      graphSVG.datum(randomize).call(chart); // TODO automatic transition
     });
   });
 
