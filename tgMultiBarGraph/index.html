@@ -21,47 +21,212 @@ text {
 }
 
 form {
-  position: absolute;
-  right: 10px;
-  top: 10px;
+}
+
+#chartContainer {
+  width: 100%; 
+  height: 425px;
+  overflow-x: auto;
+  max-width: 600px;
 }
 
 </style>
+<div>
 <form>
   <label><input type="radio" name="mode" value="grouped"> Grouped</label>
   <label><input type="radio" name="mode" value="stacked" checked> Stacked</label>
 </form>
+</div>
+<div id="chartContainer">
+</div>
 <script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
 <script src="bower_components/moment/moment.js"></script>
 <script>
 
+var inputData = [
+          {
+            "date":  moment().subtract('month', 1).startOf('month').toDate(),
+            "recurring": 50,
+            "oneTime": 40,
+            "taxes": 30,
+            "lateFees": 20
+          },
+          {
+            "date":  moment().subtract('month', 2).startOf('month').toDate(),
+            "recurring": 51,
+            "oneTime": 41,
+            "taxes": 31,
+            "lateFees": 21
+          },
+          {
+            "date":  moment().subtract('month', 3).startOf('month').toDate(),
+            "recurring": 52,
+            "oneTime": 42,
+            "taxes": 32,
+            "lateFees": 22
+          },
+          {
+            "date":  moment().subtract('month', 4).startOf('month').toDate(),
+            "recurring": 53,
+            "oneTime": 43,
+            "taxes": 33,
+            "lateFees": 23
+          },
+          {
+            "date":  moment().subtract('month', 5).startOf('month').toDate(),
+            "recurring": 54,
+            "oneTime": 44,
+            "taxes": 34,
+            "lateFees": 24
+          },
+          {
+            "date":  moment().subtract('month', 6).startOf('month').toDate(),
+            "recurring": 55,
+            "oneTime": 45,
+            "taxes": 35,
+            "lateFees": 25
+          },
+          {
+            "date":  moment().subtract('month', 7).startOf('month').toDate(),
+            "recurring": 56,
+            "oneTime": 46,
+            "taxes": 36,
+            "lateFees": 26
+          },
+          {
+            "date":  moment().subtract('month', 8).startOf('month').toDate(),
+            "recurring": 57,
+            "oneTime": 47,
+            "taxes": 37,
+            "lateFees": 27
+          },
+          {
+            "date":  moment().subtract('month', 9).startOf('month').toDate(),
+            "recurring": 58,
+            "oneTime": 48,
+            "taxes": 38,
+            "lateFees": 28
+          },
+          {
+            "date":  moment().subtract('month', 10).startOf('month').toDate(),
+            "recurring": 59,
+            "oneTime": 49,
+            "taxes": 39,
+            "lateFees": 29
+          }/*,
+          {
+            "date":  moment().subtract('month', 11).startOf('month').toDate(),
+            "recurring": 50,
+            "oneTime": 40,
+            "taxes": 30,
+            "lateFees": 20
+          },
+          {
+            "date":  moment().subtract('month', 12).startOf('month').toDate(),
+            "recurring": 50,
+            "oneTime": 40,
+            "taxes": 30,
+            "lateFees": 20
+          }*/
+        ];
+
+var legend = [
+  {
+    id: "recurring",
+    title: "Recurring",
+    color: "#2F7ED8"
+  }, 
+  {
+    id: "oneTime",
+    title: "One Time",
+    color: "#0D233A"
+  }, 
+  {
+    id: "taxes",
+    title: "Taxes",
+    color: "#8BBC21"
+  }, 
+  {
+    id: "lateFees",
+    title: "Late Fees",
+    color: "#910000"
+  }
+];
+
 //var barcolors = ["#2F7ED8", "#0D233A", "#8BBC21", "#910000", "#1AADCE", "#492970"];
-var barcolors = ["#2F7ED8", "#0D233A", "#8BBC21", "#910000", "#1AADCE", "#492970"];
+var barcolors = _.map(legend, function(item) { return item.color;});
+
+// prepare the trendData with all of the layers
+var data = _.map(legend, function(value) {
+  var layer = _.clone(value);
+  layer.values = [];
+  return layer;
+});
+var trendDataItems = _.chain(inputData).clone().sortBy(function(item) {
+  return item["date"];
+}).forEach(function(dataItem, index) {
+  _.forEach(data, function(layer) {
+    var item = {x: index, date: dataItem.date};
+    item.value = item.y = dataItem[layer.id] || 0;
+    layer.values.push(item);
+  });
+}).value();
+
+var stack = d3.layout.stack()
+    .values(function(d) { return d.values; })
+    .y(function y(d) {
+      return d.value;
+    })
+    .out(function(d, y0, y) {
+      d.y0 = y0
+      d.y 
+    });
+
+var layers = stack(data);
+
+//var zzz = trendLayersXXX;
 
 
-var n = 6, // number of layers
-    m = 12, // number of samples per layer
-    stack = d3.layout.stack(),
+
+//var barcolors = ["#2F7ED8", "#0D233A", "#8BBC21", "#910000", "#1AADCE", "#492970"];
+
+
+//var n = layers.length; // number of layers
+//var m = layers[0].values.length; // number of samples per layer
     //layers = stack(d3.range(n).map(function() { return bumpLayer(m, .1); })),
     //layersXXX = stack(d3.range(n).map(function() { return bumpLayerXXX(m, .1); })),
-    layers = stack(d3.range(n).map(function() { return bumpLayerXXX(m, .1); })),
-    yGroupMax = d3.max(layers, function(layer) { return d3.max(layer, function(d) { return d.y; }); }),
-    yStackMax = d3.max(layers, function(layer) { return d3.max(layer, function(d) { return d.y0 + d.y; }); }),
-    formatDate = function(d) { return "Q" + ((d.getMonth() / 3 | 0) + 1) + formatYear(d.getFullYear() % 100); };
 
-var margin = {top: 40, right: 10, bottom: 20, left: 10},
-    width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+
+//var stack = d3.layout.stack();
+//var data = d3.range(n).map(function() { return bumpLayerXXX(m, .1); });
+//var layers = stack(data);
+
+//var trendStack =  d3.layout.stack();
+//var trendDataLayers = trendStack(trendData);
+
+
+var yGroupMax = d3.max(layers, function(layer) { return d3.max(layer.values, function(d) { return d.y; }); });
+var yStackMax = d3.max(layers, function(layer) { return d3.max(layer.values, function(d) { return d.y0 + d.value; }); });
+var formatDate = function(d) { return "Q" + ((d.getMonth() / 3 | 0) + 1) + formatYear(d.getFullYear() % 100); };
+
+var itemsPerLayer = inputData.length;
+var numberOfLayers = layers.length;
+
+var margin = {top: 10, right: 10, bottom: 20, left: 50},
+//    width = 960 - margin.left - margin.right,
+    width = 600 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
 
 
 var x = d3.scale.ordinal()
-    .domain(d3.range(m))
+    .domain(d3.range(itemsPerLayer))
     .rangeRoundBands([0, width], .3);
 
 //var minDate = layersXXX[0][0].x;
 //var maxDate = layersXXX[0][11].x;
-var minDate = layers[0][0].x;
-var maxDate = layers[0][11].x;
+//var minDate = layers[0][0].x;
+//var maxDate = layers[0][11].x;
 
 /*
 var xxx = d3.time.scale()
@@ -74,6 +239,10 @@ var x = d3.time.scale()
     .range([0, width]);
 */
 
+function getToolTip(d) {
+  //return "The value is " + d.y;
+  return "TOOLTIP";
+}
 
 var y = d3.scale.linear()
     .domain([0, yStackMax])
@@ -84,10 +253,22 @@ var r = color.range();
 var xAxis = d3.svg.axis()
     .scale(x)
     .tickSize(0)
-    .tickPadding(6)
+    .tickPadding(5)
+    //.tickFormat(function(value) { return "DATE: " + value; })
+    .tickFormat(function(value) { 
+      return "01-09"; 
+    })
     .orient("bottom");
 
-var svg = d3.select("body").append("svg")
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .tickSize(0)
+    .tickPadding(5)
+    //.tickFormat(function(value) { return "DATE: " + value; })
+    //.tickFormat(function(value) { return "01-09"; })
+    .orient("left");
+
+var svg = d3.select("#chartContainer").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
@@ -97,25 +278,52 @@ var layer = svg.selectAll(".layer")
     .data(layers)
   .enter().append("g")
     .attr("class", "layer")
-    .style("fill", function(d, i) { return color(i); });
+    .style("fill", function(d, i) { 
+      return color(i); 
+    });
 
 var rect = layer.selectAll("rect")
-    .data(function(d) { return d; })
-  .enter().append("rect")
-    .attr("x", function(d) { return x(d.x); })
+    .data(function(d) { 
+      return d.values; 
+    });
+
+rect.enter().append("rect")
+    .attr("x", function(d) { 
+      return x(d.x); 
+    })
     .attr("y", height)
     .attr("width", x.rangeBand())
-    .attr("height", 0);
+    .attr("height", 0)
+    .append("svg:title").text(
+      function(d) {
+        return getToolTip(d)}
+    );
 
 rect.transition()
     .delay(function(d, i) { return i * 10; })
-    .attr("y", function(d) { return y(d.y0 + d.y); })
-    .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); });
+    .attr("y", function(d) { 
+      return y(d.y0 + d.y); }
+      )
+    .attr("height", function(d) { 
+      return y(d.y0) - y(d.y0 + d.y); 
+    });
+
 
 svg.append("g")
     .attr("class", "x axis")
     .attr("transform", "translate(0," + height + ")")
     .call(xAxis);
+
+svg.append("g")
+    .attr("class", "y axis")
+    //.attr("transform", "translate(0," + height + ")")
+    .call(yAxis);
+
+
+
+rect.select("title").text(function(d) {
+  return getToolTip(d)}
+  );
 
 d3.selectAll("input").on("change", change);
 
@@ -135,11 +343,20 @@ function transitionGrouped() {
   rect.transition()
       .duration(500)
       .delay(function(d, i) { return i * 10; })
-      .attr("x", function(d, i, j) { return x(d.x) + x.rangeBand() / n * j; })
-      .attr("width", x.rangeBand() / n)
+      .attr("x", function(d, i, j) { 
+        return x(d.x) + x.rangeBand() / numberOfLayers * j; }
+      )
+      .attr("width", x.rangeBand() / numberOfLayers)
     .transition()
-      .attr("y", function(d) { return y(d.y); })
-      .attr("height", function(d) { return height - y(d.y); });
+      .attr("y", function(d) { 
+        return y(d.y); }
+      )
+      .attr("height", function(d) { 
+        return height - y(d.y); 
+      })
+    .attr("title", "This is a tooltip");
+
+svg.selectAll(".y.axis").transition().delay(500).duration(500).call(yAxis);    
 }
 
 function transitionStacked() {
@@ -148,13 +365,23 @@ function transitionStacked() {
   rect.transition()
       .duration(500)
       .delay(function(d, i) { return i * 10; })
-      .attr("y", function(d) { return y(d.y0 + d.y); })
-      .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); })
+      .attr("y", function(d) { 
+        return y(d.y0 + d.y); }
+        )
+      .attr("height", function(d) { 
+        return y(d.y0) - y(d.y0 + d.y); 
+      })
     .transition()
-      .attr("x", function(d) { return x(d.x); })
-      .attr("width", x.rangeBand());
+      .attr("x", function(d) { 
+        return x(d.x); 
+      })
+      .attr("width", x.rangeBand())
+    .attr("title", "This is a tooltip");
+
+svg.selectAll(".y.axis").transition().delay(numberOfLayers * 10).duration(500).call(yAxis);    
 }
 
+/*
 // Inspired by Lee Byron's test data generator.
 function bumpLayer(n, o) {
 
@@ -194,7 +421,8 @@ function bumpLayerXXX(n, o) {
   var a = [], i;
   for (i = 0; i < n; ++i) a[i] = o + o * Math.random();
   for (i = 0; i < 5; ++i) bump(a);
-  return a.map(function(d, i) { return {x: i, date: getDate(i), y: Math.max(0, d)}; });
+  return a.map(function(d, i) { return {x: i, date: getDate(i), y: (Math.max(0, d) * 100)}; });
 }
+*/
 
 </script>
