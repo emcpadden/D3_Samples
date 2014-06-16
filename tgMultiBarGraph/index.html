@@ -167,7 +167,7 @@ var legend = [
 ];
 
 inputData.sort(function(a,b){
-  return a.date.valueOf() > b.date.valueOf();
+  return a.date - b.date;
 });
 
 //var barcolors = ["#2F7ED8", "#0D233A", "#8BBC21", "#910000", "#1AADCE", "#492970"];
@@ -180,9 +180,7 @@ var data = _.map(legend, function(value) {
   layer.values = [];
   return layer;
 });
-var trendDataItems = _.chain(inputData).clone().sortBy(function(item) {
-  return item["date"];
-}).forEach(function(dataItem, index) {
+var trendDataItems = _.chain(inputData).clone().forEach(function(dataItem, index) {
   _.forEach(data, function(layer) {
     var item = {x: index, date: dataItem.date, layerId: layer.id, layerTitle: layer.title };
     item.value = item.y = dataItem[layer.id] || 0;
