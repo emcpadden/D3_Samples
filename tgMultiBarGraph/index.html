@@ -13,22 +13,22 @@ text {
   font: 10px sans-serif;
 }
 
-.tg-multibargraph__axis path,
-.tg-multibargraph__axis line {
+.tg-multi-trend-bargraph__axis path,
+.tg-multi-trend-bargraph__axis line {
   fill: none;
   stroke: #000;
   shape-rendering: crispEdges;
 }
 
-.tg-multibargraph__axis--x {
+.tg-multi-trend-bargraph__axis--x {
 
 }
 
-.tg-multibargraph__axis--y {
+.tg-multi-trend-bargraph__axis--y {
   
 }
 
-.tg-multibargraph__layer {
+.tg-multi-trend-bargraph__layer {
 
 }
 
@@ -252,10 +252,10 @@ var svg = d3.select("#chartContainer").append("svg")
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var layer = svg.selectAll(".tg-multibargraph__layer")
+var layer = svg.selectAll(".tg-multi-trend-bargraph__layer")
     .data(layers)
   .enter().append("g")
-    .attr("class", "tg-multibargraph__layer")
+    .attr("class", "tg-multi-trend-bargraph__layer")
     .style("fill", function(d, i) { 
       return color(i); 
     });
@@ -288,12 +288,12 @@ rect.transition()
 
 
 svg.append("g")
-    .attr("class", "tg-multibargraph__axis tg-multibargraph__axis--x")
+    .attr("class", "tg-multi-trend-bargraph__axis tg-multi-trend-bargraph__axis--x")
     .attr("transform", "translate(0," + height + ")")
     .call(xAxis);
 
 svg.append("g")
-    .attr("class", "tg-multibargraph__axis tg-multibargraph__axis--y")
+    .attr("class", "tg-multi-trend-bargraph__axis tg-multi-trend-bargraph__axis--y")
     .call(yAxis);
 
 rect.select("title").text(function(d) {
@@ -331,7 +331,7 @@ function transitionGrouped() {
       })
     .attr("title", "This is a tooltip");
 
-svg.selectAll(".tg-multibargraph__axis--y.tg-multibargraph__axis").transition().delay(500).duration(500).call(yAxis);    
+svg.selectAll(".tg-multi-trend-bargraph__axis--y.tg-multi-trend-bargraph__axis").transition().delay(500).duration(500).call(yAxis);    
 }
 
 function transitionStacked() {
@@ -353,7 +353,7 @@ function transitionStacked() {
       .attr("width", x.rangeBand())
     .attr("title", "This is a tooltip");
 
-svg.selectAll(".tg-multibargraph__axis--y.tg-multibargraph__axis").transition().delay(numberOfLayers * 10).duration(500).call(yAxis);    
+svg.selectAll(".tg-multi-trend-bargraph__axis--y.tg-multi-trend-bargraph__axis").transition().delay(numberOfLayers * 10).duration(500).call(yAxis);    
 }
 
 </script>
