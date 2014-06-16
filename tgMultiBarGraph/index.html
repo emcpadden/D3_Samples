@@ -243,7 +243,7 @@ var margin = {top: 10, right: 10, bottom: 20, left: 50},
     height = 400 - margin.top - margin.bottom;
 
 
-var x = d3.scale.ordinal()
+var xScale = d3.scale.ordinal()
     .domain(d3.range(itemsPerLayer))
     .rangeRoundBands([0, width], .3);
 
@@ -252,14 +252,14 @@ function getToolTip(d) {
   return moment(d.date).format("MMMM YYYY") + " " + d.layerTitle + " " + d.value;
 }
 
-var y = d3.scale.linear()
+var yScale = d3.scale.linear()
     .domain([0, yStackMax])
     .range([height, 0]);
 var color = d3.scale.ordinal().range(barcolors);
-var r = color.range();
+//var r = color.range();
 
 var xAxis = d3.svg.axis()
-    .scale(x)
+    .scale(xScale)
     //.tickValues(dateTicks)
     .tickSize(0)
     .tickPadding(5)
@@ -269,7 +269,7 @@ var xAxis = d3.svg.axis()
     .orient("bottom");
 
 var yAxis = d3.svg.axis()
-    .scale(y)
+    .scale(yScale)
     .tickSize(0)
     .tickPadding(5)
     .tickFormat(function(value) { 
@@ -298,10 +298,10 @@ var rect = layer.selectAll("rect")
 
 rect.enter().append("rect")
     .attr("x", function(d) { 
-      return x(d.x); 
+      return xScale(d.x); 
     })
     .attr("y", height)
-    .attr("width", x.rangeBand())
+    .attr("width", xScale.rangeBand())
     .attr("height", 0)
     .append("svg:title").text(
       function(d) {
@@ -311,10 +311,10 @@ rect.enter().append("rect")
 rect.transition()
     .delay(function(d, i) { return i * 10; })
     .attr("y", function(d) { 
-      return y(d.y0 + d.y); }
+      return yScale(d.y0 + d.y); }
       )
     .attr("height", function(d) { 
-      return y(d.y0) - y(d.y0 + d.y); 
+      return yScale(d.y0) - yScale(d.y0 + d.y); 
     });
 
 
@@ -344,21 +344,21 @@ function change() {
 }
 
 function transitionGrouped() {
-  y.domain([0, yGroupMax]);
+  yScale.domain([0, yGroupMax]);
 
   rect.transition()
       .duration(500)
       .delay(function(d, i) { return i * 10; })
       .attr("x", function(d, i, j) { 
-        return x(d.x) + x.rangeBand() / numberOfLayers * j; }
+        return xScale(d.x) + xScale.rangeBand() / numberOfLayers * j; }
       )
-      .attr("width", x.rangeBand() / numberOfLayers)
+      .attr("width", xScale.rangeBand() / numberOfLayers)
     .transition()
       .attr("y", function(d) { 
-        return y(d.y); }
+        return yScale(d.y); }
       )
       .attr("height", function(d) { 
-        return height - y(d.y); 
+        return height - yScale(d.y); 
       })
     .attr("title", "This is a tooltip");
 
@@ -366,22 +366,22 @@ svg.selectAll(".tg-multi-trend-bargraph__axis--y.tg-multi-trend-bargraph__axis")
 }
 
 function transitionStacked() {
-  y.domain([0, yStackMax]);
+  yScale.domain([0, yStackMax]);
 
   rect.transition()
       .duration(500)
       .delay(function(d, i) { return i * 10; })
       .attr("y", function(d) { 
-        return y(d.y0 + d.y); }
+        return yScale(d.y0 + d.y); }
         )
       .attr("height", function(d) { 
-        return y(d.y0) - y(d.y0 + d.y); 
+        return yScale(d.y0) - yScale(d.y0 + d.y); 
       })
     .transition()
       .attr("x", function(d) { 
-        return x(d.x); 
+        return xScale(d.x); 
       })
-      .attr("width", x.rangeBand())
+      .attr("width", xScale.rangeBand())
     .attr("title", "This is a tooltip");
 
 svg.selectAll(".tg-multi-trend-bargraph__axis--y.tg-multi-trend-bargraph__axis").transition().delay(numberOfLayers * 10).duration(500).call(yAxis);    
