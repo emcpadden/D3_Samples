@@ -13,11 +13,23 @@ text {
   font: 10px sans-serif;
 }
 
-.axis path,
-.axis line {
+.tg-multibargraph__axis path,
+.tg-multibargraph__axis line {
   fill: none;
   stroke: #000;
   shape-rendering: crispEdges;
+}
+
+.tg-multibargraph__axis--x {
+
+}
+
+.tg-multibargraph__axis--y {
+  
+}
+
+.tg-multibargraph__layer {
+
 }
 
 form {
@@ -114,7 +126,7 @@ var inputData = [
             "oneTime": 49,
             "taxes": 39,
             "lateFees": 29
-          }/*,
+          },
           {
             "date":  moment().subtract('month', 11).startOf('month').toDate(),
             "recurring": 50,
@@ -128,7 +140,7 @@ var inputData = [
             "oneTime": 40,
             "taxes": 30,
             "lateFees": 20
-          }*/
+          }
         ];
 
 var legend = [
@@ -154,8 +166,13 @@ var legend = [
   }
 ];
 
+inputData.sort(function(a,b){
+  return a.date.valueOf() > b.date.valueOf();
+});
+
 //var barcolors = ["#2F7ED8", "#0D233A", "#8BBC21", "#910000", "#1AADCE", "#492970"];
 var barcolors = _.map(legend, function(item) { return item.color;});
+var dateTicks = _.map(inputData, function(item) { return item.date;});
 
 // prepare the trendData with all of the layers
 var data = _.map(legend, function(value) {
@@ -167,7 +184,7 @@ var trendDataItems = _.chain(inputData).clone().sortBy(function(item) {
   return item["date"];
 }).forEach(function(dataItem, index) {
   _.forEach(data, function(layer) {
-    var item = {x: index, date: dataItem.date};
+    var item = {x: index, date: dataItem.date, layerId: layer.id, layerTitle: layer.title };
     item.value = item.y = dataItem[layer.id] || 0;
     layer.values.push(item);
   });
@@ -185,36 +202,14 @@ var stack = d3.layout.stack()
 
 var layers = stack(data);
 
-//var zzz = trendLayersXXX;
-
-
-
-//var barcolors = ["#2F7ED8", "#0D233A", "#8BBC21", "#910000", "#1AADCE", "#492970"];
-
-
-//var n = layers.length; // number of layers
-//var m = layers[0].values.length; // number of samples per layer
-    //layers = stack(d3.range(n).map(function() { return bumpLayer(m, .1); })),
-    //layersXXX = stack(d3.range(n).map(function() { return bumpLayerXXX(m, .1); })),
-
-
-//var stack = d3.layout.stack();
-//var data = d3.range(n).map(function() { return bumpLayerXXX(m, .1); });
-//var layers = stack(data);
-
-//var trendStack =  d3.layout.stack();
-//var trendDataLayers = trendStack(trendData);
-
-
 var yGroupMax = d3.max(layers, function(layer) { return d3.max(layer.values, function(d) { return d.y; }); });
 var yStackMax = d3.max(layers, function(layer) { return d3.max(layer.values, function(d) { return d.y0 + d.value; }); });
-var formatDate = function(d) { return "Q" + ((d.getMonth() / 3 | 0) + 1) + formatYear(d.getFullYear() % 100); };
+//var formatDate = function(d) { return "Q" + ((d.getMonth() / 3 | 0) + 1) + formatYear(d.getFullYear() % 100); };
 
 var itemsPerLayer = inputData.length;
 var numberOfLayers = layers.length;
 
 var margin = {top: 10, right: 10, bottom: 20, left: 50},
-//    width = 960 - margin.left - margin.right,
     width = 600 - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom;
 
@@ -223,25 +218,9 @@ var x = d3.scale.ordinal()
     .domain(d3.range(itemsPerLayer))
     .rangeRoundBands([0, width], .3);
 
-//var minDate = layersXXX[0][0].x;
-//var maxDate = layersXXX[0][11].x;
-//var minDate = layers[0][0].x;
-//var maxDate = layers[0][11].x;
-
-/*
-var xxx = d3.time.scale()
-    .domain([minDate, maxDate])
-    .range([0, width]);
-*/
-/*
-var x = d3.time.scale()
-    .domain([minDate, maxDate])
-    .range([0, width]);
-*/
 
 function getToolTip(d) {
-  //return "The value is " + d.y;
-  return "TOOLTIP";
+  return moment(d.date).format("MMMM YYYY") + " " + d.layerTitle + " " + d.value;
 }
 
 var y = d3.scale.linear()
@@ -252,11 +231,11 @@ var r = color.range();
 
 var xAxis = d3.svg.axis()
     .scale(x)
+    //.tickValues(dateTicks)
     .tickSize(0)
     .tickPadding(5)
-    //.tickFormat(function(value) { return "DATE: " + value; })
     .tickFormat(function(value) { 
-      return "01-09"; 
+      return moment(dateTicks[value]).format("MM-YY");
     })
     .orient("bottom");
 
@@ -264,8 +243,9 @@ var yAxis = d3.svg.axis()
     .scale(y)
     .tickSize(0)
     .tickPadding(5)
-    //.tickFormat(function(value) { return "DATE: " + value; })
-    //.tickFormat(function(value) { return "01-09"; })
+    .tickFormat(function(value) { 
+      return value;
+    })
     .orient("left");
 
 var svg = d3.select("#chartContainer").append("svg")
@@ -274,10 +254,10 @@ var svg = d3.select("#chartContainer").append("svg")
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var layer = svg.selectAll(".layer")
+var layer = svg.selectAll(".tg-multibargraph__layer")
     .data(layers)
   .enter().append("g")
-    .attr("class", "layer")
+    .attr("class", "tg-multibargraph__layer")
     .style("fill", function(d, i) { 
       return color(i); 
     });
@@ -310,20 +290,17 @@ rect.transition()
 
 
 svg.append("g")
-    .attr("class", "x axis")
+    .attr("class", "tg-multibargraph__axis tg-multibargraph__axis--x")
     .attr("transform", "translate(0," + height + ")")
     .call(xAxis);
 
 svg.append("g")
-    .attr("class", "y axis")
-    //.attr("transform", "translate(0," + height + ")")
+    .attr("class", "tg-multibargraph__axis tg-multibargraph__axis--y")
     .call(yAxis);
-
-
 
 rect.select("title").text(function(d) {
   return getToolTip(d)}
-  );
+);
 
 d3.selectAll("input").on("change", change);
 
@@ -356,7 +333,7 @@ function transitionGrouped() {
       })
     .attr("title", "This is a tooltip");
 
-svg.selectAll(".y.axis").transition().delay(500).duration(500).call(yAxis);    
+svg.selectAll(".tg-multibargraph__axis--y.tg-multibargraph__axis").transition().delay(500).duration(500).call(yAxis);    
 }
 
 function transitionStacked() {
@@ -378,51 +355,7 @@ function transitionStacked() {
       .attr("width", x.rangeBand())
     .attr("title", "This is a tooltip");
 
-svg.selectAll(".y.axis").transition().delay(numberOfLayers * 10).duration(500).call(yAxis);    
+svg.selectAll(".tg-multibargraph__axis--y.tg-multibargraph__axis").transition().delay(numberOfLayers * 10).duration(500).call(yAxis);    
 }
-
-/*
-// Inspired by Lee Byron's test data generator.
-function bumpLayer(n, o) {
-
-  function bump(a) {
-    var x = 1 / (.1 + Math.random()),
-        y = 2 * Math.random() - .5,
-        z = 10 / (.1 + Math.random());
-    for (var i = 0; i < n; i++) {
-      var w = (i / n - y) * z;
-      a[i] += x * Math.exp(-w * w);
-    }
-  }
-
-  var a = [], i;
-  for (i = 0; i < n; ++i) a[i] = o + o * Math.random();
-  for (i = 0; i < 5; ++i) bump(a);
-  return a.map(function(d, i) { return {x: i, y: Math.max(0, d)}; });
-}
-
-// Inspired by Lee Byron's test data generator.
-function bumpLayerXXX(n, o) {
-
-  function bump(a) {
-    var x = 1 / (.1 + Math.random()),
-        y = 2 * Math.random() - .5,
-        z = 10 / (.1 + Math.random());
-    for (var i = 0; i < n; i++) {
-      var w = (i / n - y) * z;
-      a[i] += x * Math.exp(-w * w);
-    }
-  }
-
-  function getDate(i) {
-    return moment().subtract('months', i).toDate();
-  }
-
-  var a = [], i;
-  for (i = 0; i < n; ++i) a[i] = o + o * Math.random();
-  for (i = 0; i < 5; ++i) bump(a);
-  return a.map(function(d, i) { return {x: i, date: getDate(i), y: (Math.max(0, d) * 100)}; });
-}
-*/
 
 </script>
