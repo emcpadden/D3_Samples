@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.arc path {
+  stroke: #fff;
+}
+
+</style>
+
+</head>
+<body>
+<h1>tgDonutChart</h1>
+<p>This is an example of a donut chart</p>
+<div style="background: #eff0ff; margin:20px; padding: 50px;">
+  <div id="donut" style="width: 100%; height: 300px;"></div>
+</div>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
+<script>
+
+var inputData = [
+  {
+    "id": "lines",
+    "title": "Lines",
+    "value": 22006.00
+  },
+  {
+    "id": "tollfree",
+    "title": "Toll Free",
+    "value": 18277.00
+  },
+  {
+    "id": "other1",
+    "title": "Other1",
+    "value": 4000.00
+  },
+  {
+    "id": "ports",
+    "title": "Ports",
+    "value": 14972.00
+  },
+  {
+    "id": "other2",
+    "title": "Other2",
+    "value": 3000.00
+  },
+  {
+    "id": "pvcs",
+    "title": "PVCs",
+    "value": 11068.00
+  },
+  {
+    "id": "circuits",
+    "title": "Circuits",
+    "value": 16596.00
+  },
+  {
+    "id": "other3",
+    "title": "Other3",
+    "value": 2823.00
+  },
+  {
+    "id": "other4",
+    "title": "Other4",
+    "value": 1833.00
+  }
+];
+
+var maxItems = 20;
+
+// massage the input data
+var tempdata = _.chain(inputData).sortBy('value').toArray().reverse();
+var data = null;
+if(inputData.length > maxItems) {
+  data = tempdata.slice(0, maxItems - 1).value();
+  data.push( tempdata.slice(maxItems - 1).reduce(function(a,b) {
+    a.id = "other";
+    a.title = "Other";
+    a.value = a.value + b.value;
+    return a;
+  }).value());
+}
+else {
+  data = tempdata.value();
+}
+var totalAmount = _.chain(data).map(function(item) {return item.value;}).reduce(function(sum,value) {
+  return sum + value;
+}).value();
+data.map(function(item){
+  item.percent = Math.round((item.value/totalAmount) * 1000)/10;
+});
+
+var color = d3.scale.category20();
+
+var legend = data.map(function(item, index) {
+  item.color = color(item.id);
+  return item;
+});
+
+var width = $('#donut').width(),
+    height = $('#donut').height(),
+    radius = (Math.min(width, height) / 2),
+    outerRadius = radius - 10,
+    innerRadius = outerRadius - (outerRadius * .3);
+
+var arc = d3.svg.arc()
+    .outerRadius(outerRadius)
+    .innerRadius(innerRadius);
+
+var pie = d3.layout.pie()
+    .sort(null)
+    .value(function(d) { return d.value; });
+
+var svg = d3.select("#donut").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+  .append("g")
+    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+  var pieData = pie(data);
+
+  var g = svg.selectAll(".arc")
+      .data(pieData)
+    .enter().append("g")
+      .attr("class", "arc");
+
+  g.append("path")
+      .attr("d", arc)
+      .style("fill", function(d) { 
+        return color(d.data.id); 
+      });
+
+  var mainTextFontSize = innerRadius - innerRadius / 20;
+  var mainTextTranslateY = innerRadius - innerRadius * 0.9;
+  var subTextFontSize = mainTextFontSize * .25; //innerRadius - innerRadius / 50;
+  var subTextTranslateY = innerRadius - innerRadius * 0.6;
+
+  var sliceTextSize = subTextFontSize * 0.5; 
+
+  g.append("text")
+      .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+      .attr("dy", ".35em")
+      .style("font-size", sliceTextSize)
+      .style("text-anchor", "middle")
+      .text(function(d) { return (d.data.percent >= 2.0 && sliceTextSize > 8.0) ? d.data.percent + "%" : ""; });
+
+
+  var mainText = svg.append("text")
+      .attr("transform", function(d) { return "translate(0," + mainTextTranslateY + ")"; })
+      .style("font-size", mainTextFontSize)
+      .style("font-weight", "bold")
+      .style("text-anchor", "middle")
+      .text(function(d) { return inputData.length; });
+
+
+  var subText = svg.append("text")
+      .attr("transform", function(d) { return "translate(0," + subTextTranslateY + ")"; })
+      .style("font-size", subTextFontSize)
+      .style("font-weight", "normal")
+      .style("text-anchor", "middle")
+      .text(function(d) { return subTextFontSize > 9.0 ? "Cost Centers" : ""; });
+
+</script>
+</body>
+</html>
+

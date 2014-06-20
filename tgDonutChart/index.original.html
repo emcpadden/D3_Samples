@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.arc path {
+  stroke: #fff;
+}
+
+</style>
+
+</head>
+<body>
+<h1>tgDonutChart</h1>
+<p>This is an example of a donut chart</p>
+<div style="background: #eff0ff; margin:20px; padding: 50px;">
+  <div id="donut" style="width: 100%; height: 300px;"></div>
+</div>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+var width = $('#donut').width(),
+    height = $('#donut').height(),
+    radius = (Math.min(width, height) / 2),
+    outerRadius = radius - 10,
+    innerRadius = outerRadius - (outerRadius * .3);
+
+var color = d3.scale.ordinal()
+    .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+
+var arc = d3.svg.arc()
+    .outerRadius(outerRadius)
+    .innerRadius(innerRadius);
+
+var pie = d3.layout.pie()
+    .sort(null)
+    .value(function(d) { return d.population; });
+
+var svg = d3.select("#donut").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+  .append("g")
+    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+d3.csv("data.csv", function(error, data) {
+
+  data.forEach(function(d) {
+    d.population = +d.population;
+  });
+
+  var g = svg.selectAll(".arc")
+      .data(pie(data))
+    .enter().append("g")
+      .attr("class", "arc");
+
+  g.append("path")
+      .attr("d", arc)
+      .style("fill", function(d) { return color(d.data.age); });
+
+  g.append("text")
+      .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+      .attr("dy", ".35em")
+      .style("text-anchor", "middle")
+      .text(function(d) { return d.data.age; });
+
+  var mainTextFontSize = innerRadius - innerRadius / 20;
+  var mainTextTranslateY = innerRadius - innerRadius * 0.9;
+
+  var mainText = svg.append("text")
+      .attr("transform", function(d) { return "translate(0," + mainTextTranslateY + ")"; })
+      .style("font-size", mainTextFontSize)
+      .style("font-weight", "bold")
+      .style("text-anchor", "middle")
+      .text(function(d) { return "55"; });
+
+
+  var subTextFontSize = mainTextFontSize * .25; //innerRadius - innerRadius / 50;
+  var subTextTranslateY = innerRadius - innerRadius * 0.6;
+
+  var subText = svg.append("text")
+      .attr("transform", function(d) { return "translate(0," + subTextTranslateY + ")"; })
+      .style("font-size", subTextFontSize)
+      .style("font-weight", "normal")
+      .style("text-anchor", "middle")
+      .text(function(d) { return "Cost Centers"; });
+
+/*
+  var subText = svg.append("text")
+      .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+      .attr("dy", ".35em")
+      .style("text-anchor", "middle")
+      .text(function(d) { return "Asset Types"; });
+      */
+});
+
+</script>
+</body>
+</html>
+
