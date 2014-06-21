@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  background: #fff;
+}
+
+.stroke {
+  fill: none;
+  stroke: #000;
+  stroke-width: 2px;
+}
+
+.fill {
+  fill: #eff0ff;
+}
+
+.graticule {
+  fill: none;
+  stroke: #999;
+  stroke-width: .5px;
+  stroke-opacity: .25;
+}
+
+.land {
+  fill: #444;
+}
+
+.boundary {
+  fill: none;
+  stroke: #fff;
+  stroke-width: .5px;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+
+var width = 500,
+    height = 500;
+
+var projection = d3.geo.orthographic()
+    .scale(250)
+    .translate([width / 2, height / 2])
+    .clipAngle(90)
+    .rotate([90,0])
+    //.center([-50,-100])
+    .precision(.1); // .707
+
+var path = d3.geo.path()
+    .projection(projection);
+
+var graticule = d3.geo.graticule()
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+svg.append("defs").append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", path);
+
+
+svg.append("use")
+    .attr("class", "stroke")
+    .attr("xlink:href", "#sphere");
+
+svg.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");
+
+
+svg.append("path")
+    .datum(graticule)
+    .attr("class", "graticule")
+    .attr("d", path);
+
+d3.json("world-countries.json", function(error, world) {
+
+
+  svg.selectAll(".country")
+      .data(topojson.feature(world, world.objects.countries).features)
+    .enter().append("path")
+      .attr("class", function(d) { return "country " + d.id; })
+      .attr("data-countryid", function(d) { return d.id; })
+      .attr("d", path);
+/*
+  svg.append("path")
+      .datum(topojson.feature(world, world.objects.land))
+      .attr("class", "land")
+      .attr("d", path);
+*/
+
+  svg.append("path")
+      .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+      .attr("class", "boundary")
+      .attr("d", path);
+
+
+/*
+  svg.insert("path", ".graticule")
+      .datum(topojson.feature(world, world.objects.land))
+      .attr("class", "land")
+      .attr("d", path);
+
+  svg.insert("path", ".graticule")
+      .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+      .attr("class", "boundary")
+      .attr("d", path);
+*/
+});
+
+d3.select(self.frameElement).style("height", height + "px");
+
+</script>
