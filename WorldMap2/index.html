@@ -79,7 +79,9 @@ svg.append("path")
     .attr("class", "graticule")
     .attr("d", path);
 
-d3.json("world-countries.json", function(error, world) {
+//d3.json("world-countries.json", function(error, world) {
+//d3.json("world-50m.json", function(error, world) {
+d3.json("world-110m2.json", function(error, world) {
 
 
   svg.selectAll(".country")

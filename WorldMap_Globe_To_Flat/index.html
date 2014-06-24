@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  background: #eff0ff;
+}
+
+.stroke {
+  fill: none;
+  stroke: #000;
+  stroke-width: 2px;
+}
+
+.fill {
+  fill: #eff0ff;
+}
+
+.graticule {
+  fill: none;
+  stroke: #999;
+  stroke-width: .5px;
+  stroke-opacity: .25;
+}
+
+.land {
+  fill: #444;
+}
+
+.boundary {
+  fill: none;
+  stroke: #fff;
+  stroke-width: .5px;
+}
+
+#content {
+  margin-top: 50px;
+  width: 100%;
+  height: 700px
+  padding: 50px;
+}
+
+#chart {
+  width: 500px;
+  height: 500px;
+  margin: 0 auto;
+  background: #fff;
+}
+
+</style>
+<body>
+
+  <h1>World - Globe or Flat</h1>
+  <div>
+    <button id="globeView">Globe</button>
+    <button id="flatView">Flat</button>
+  </div>
+  <div id="content">
+    <div id="chart"></div>
+  </div>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+
+var world = null;
+
+var countries = null;
+
+var width = 500,
+    height = 500;
+
+var globeProjection = d3.geo.orthographic()
+    .scale(250)
+    .translate([width / 2, height / 2])
+    .clipAngle(90)
+    .rotate([90,0])
+    //.center([-50,-100])
+    .precision(.1); // .707
+
+var globePath = d3.geo.path()
+    .projection(globeProjection);
+
+var flatProjection = d3.geo.mercator()
+    .scale(250)
+    .translate([width / 2, height / 2])
+    .precision(.1); // .707
+
+var flatPath = d3.geo.path()
+    .projection(flatProjection);
+
+
+d3.select('#globeView').on('click', function() {
+  displayMap(globePath);
+});
+d3.select('#flatView').on('click', function() {
+  displayMap(flatPath);
+});
+
+var world = null;
+
+
+function displayMap(path) {
+
+  countries.data(world)
+        .attr("class", function(d) { return "country " + d.id; })
+        .attr("data-countryid", function(d) { return d.id; })
+        .attr("d", path);
+}
+
+
+
+var svg = d3.select("#chart").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+svg.append("defs").append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", globePath);
+
+
+svg.append("use")
+    .attr("class", "stroke")
+    .attr("xlink:href", "#sphere");
+
+svg.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");
+
+
+d3.json("world-110m2.json", function(error, data) {
+  world = data;
+
+  countries = svg.selectAll(".country").data(topojson.feature(world, world.objects.countries).features);
+
+    countries
+      .enter().append("path")
+        .attr("class", function(d) { return "country " + d.id; })
+        .attr("data-countryid", function(d) { return d.id; })
+        .attr("d", globePath);
+});
+
+
+</script>
