@@ -9,26 +9,26 @@ body {
   width: 100%;
 }
 
-.mx-world__foreground {
+.mx-globe__foreground {
   transition: stroke 0.5s ease;
   fill: none;
-  stroke: transparent;
+  stroke: #222;
   stroke-width: 1px;
   pointer-events: all;
   cursor: -webkit-grab;
   cursor: -moz-grab;
 }
 
-.mx-world__foreground--globe {
-  stroke: #222;
+.mx-globe__foreground--map {
+  stroke: transparent;
 }
 
-.mx-world__foreground.mx-world--zooming {
+.mx-globe__foreground.mx-globe--zooming {
   cursor: -webkit-grabbing;
   cursor: -moz-grabbing;
 }
 
-.mx-world__graticule {
+.mx-globe__graticule {
   fill: none;
   stroke: #636B62;
   stroke-width: .5px;
@@ -36,12 +36,12 @@ body {
   opacity: .5;
 }
 
-.mx-world__land {
+.mx-globe__land {
   fill: #777;
   stroke: none;
 }
 
-.mx-world__boundary {
+.mx-globe__boundary {
   fill: none;
   stroke: #fff;
   stroke-width: .5px;
@@ -130,7 +130,7 @@ function initialize() {
   }  
   svg.append("path")
     .datum(graticule)
-    .attr("class", "mx-world__graticule")
+    .attr("class", "mx-globe__graticule")
     .attr("d", getPath());
 
   // TODO: NEED TO BETTER HANDLE THECASE WHERE THE MAP IS DISPLAYED FIRST
@@ -147,18 +147,18 @@ function ensureGlobeInitialized() {
     var path = getPath('Globe');
     svg.append("path")
       .datum({type: "Sphere"})
-      .attr("class", "mx-world__foreground mx-world__foreground--globe")
+      .attr("class", "mx-globe__foreground")
       .attr("d", path)
       .on("mousedown.grab", function() {
         var point;
-        var path = d3.select(this).classed("mx-world--zooming", true);
+        var path = d3.select(this).classed("mx-globe--zooming", true);
         var w = d3.select(window).on("mouseup.grab", function() {
-          path.classed("mx-world--zooming", false);
+          path.classed("mx-globe--zooming", false);
           w.on("mouseup.grab", null);
         });
       });
 
-    svg.selectAll(".mx-world__foreground")
+    svg.selectAll(".mx-globe__foreground")
       .call(d3.geo.zoom().projection(getProjection('Globe'))
         .scaleExtent([originalGlobeScale, originalGlobeScale * 10])
         .on("zoom.redraw", function() {
@@ -173,14 +173,14 @@ function ensureGlobeInitialized() {
 
 function initMapData() {
   d3.json("world-110m2.json", function(error, world) {
-    svg.insert("path", ".mx-world__graticule")
+    svg.insert("path", ".mx-globe__graticule")
       .datum(topojson.feature(world, world.objects.land))
-      .attr("class", "mx-world__land")
+      .attr("class", "mx-globe__land")
       .attr("d", getPath());
 
-    svg.insert("path", ".mx-world__graticule")
+    svg.insert("path", ".mx-globe__graticule")
       .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
-      .attr("class", "mx-world__boundary")
+      .attr("class", "mx-globe__boundary")
       .attr("d", getPath());
   });
 }
@@ -250,7 +250,7 @@ function setGlobeCenter(position) {
 }
 
 function unbindZoom() {
-  svg.selectAll(".mx-world__foreground")
+  svg.selectAll(".mx-globe__foreground")
     .on("mousedown.zoom", null)
     .on("mousewheel.zoom", null)
     .on("mousemove.zoom", null)
@@ -282,7 +282,7 @@ function showGlobe() {
             .duration(750)
             .each('start',
               function() {
-                svg.selectAll(".mx-world__foreground").classed('mx-world__foreground--globe', true)
+                svg.selectAll(".mx-globe__foreground").classed('mx-globe__foreground--map', false)
               })
               .attrTween("d", projectionTween("Globe"))
           .transition()
@@ -304,7 +304,7 @@ function showGlobe() {
                     d3.event.sourceEvent.preventDefault();
                     svg.selectAll("path").attr("d", path);
                   });
-                svg.selectAll(".mx-world__foreground")
+                svg.selectAll(".mx-globe__foreground")
                   .call(zoom);
               }
             );
@@ -338,7 +338,7 @@ function showMap() {
       .transition()
         .each('end', 
           function() {
-            svg.selectAll(".mx-world__foreground").classed('mx-world__foreground--globe', false)
+            svg.selectAll(".mx-globe__foreground").classed('mx-globe__foreground--map', true)
           })
       .transition()
         .duration(750)
@@ -355,7 +355,7 @@ function showMap() {
                 mapItems.attr("transform","translate("+ d3.event.translate.join(",")+")scale("+d3.event.scale+")");
                 mapItems.attr("d", getPath('Map')); 
               });
-            svg.selectAll(".mx-world__foreground")
+            svg.selectAll(".mx-globe__foreground")
               .call(zoom);
             currentView = "Map";
           });
