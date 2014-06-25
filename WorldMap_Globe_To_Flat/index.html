@@ -146,33 +146,19 @@ svg.selectAll(".foreground")
 currentView = "Globe";
 
 d3.json("world-110m2.json", function(error, world) {
-  updateMapData(world)
+  svg.insert("path", ".graticule")
+    .datum(topojson.feature(world, world.objects.land))
+    .attr("class", "land")
+    .attr("d", path);
+
+  svg.insert("path", ".graticule")
+    .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+    .attr("class", "boundary")
+    .attr("d", path);
 });
 
-function getPath() {
-  var path = null;
-  if(currentView === "Globe") {
-    path = d3.geo.path().projection(globeProjection)
-  }
-  else if(currentView === "Map") {
-    path = d3.geo.path().projection(flatProjection)
-  }
-  return path;
-}
-
-function updateMapData(world) {
-  var path = getPath();
-  if(path) {
-    svg.insert("path", ".graticule")
-      .datum(topojson.feature(world, world.objects.land))
-      .attr("class", "land")
-      .attr("d", path);
-
-    svg.insert("path", ".graticule")
-      .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
-      .attr("class", "boundary")
-      .attr("d", path);
-  }
+function updateMapData() {
+  
 }
 
 function setGlobeCenter(position) {
@@ -214,6 +200,7 @@ function showGlobe() {
   }
   setTimeout(
     function() {
+        unbindZoom();
         map
           .transition()
             .duration(750)
@@ -230,7 +217,6 @@ function showGlobe() {
           .transition()
             .each('end', 
               function() {
-                unbindZoom();
                 path = d3.geo.path().projection(globeProjection);
                 zoom = d3.geo.zoom().projection(globeProjection)
                   .scaleExtent([originalGlobeScale, originalGlobeScale * 10])
