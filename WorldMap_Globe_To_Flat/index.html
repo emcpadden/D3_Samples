@@ -15,7 +15,7 @@ body {
   top: 10px;
 }
 
-.foreground {
+.tg-world__foreground {
   fill: none;
   stroke: #000;
   stroke-width: 1px;
@@ -24,22 +24,23 @@ body {
   cursor: -moz-grab;
 }
 
-.foreground.zooming {
+.tg-world__foreground.tg-world--zooming {
   cursor: -webkit-grabbing;
   cursor: -moz-grabbing;
 }
-
+/*
 .stroke {
   stroke: #50576A;
   stroke-width: .5px;
   fill: none;
 }
-
+*/
+/*
 .fill {
   fill: #eff0ff;
 }
-
-.graticule {
+*/
+.tg-world__graticule {
   fill: none;
   stroke: #636B62;
   stroke-width: .5px;
@@ -47,12 +48,12 @@ body {
   opacity: .5;
 }
 
-.land {
+.tg-world__land {
   fill: #777;
   stroke: none;
 }
 
-.boundary {
+.tg-world__boundary {
   fill: none;
   stroke: #fff;
   stroke-width: .5px;
@@ -114,7 +115,7 @@ function initialize() {
   }  
   svg.append("path")
     .datum(graticule)
-    .attr("class", "graticule")
+    .attr("class", "tg-world__graticule")
     .attr("d", getPath());
 
   // TODO: NEED TO BETTER HANDLE THECASE WHERE THE MAP IS DISPLAYED FIRST
@@ -131,18 +132,18 @@ function ensureGlobeInitialized() {
     var path = getPath('Globe');
     svg.append("path")
       .datum({type: "Sphere"})
-      .attr("class", "foreground")
+      .attr("class", "tg-world__foreground")
       .attr("d", path)
       .on("mousedown.grab", function() {
         var point;
-        var path = d3.select(this).classed("zooming", true);
+        var path = d3.select(this).classed("tg-world--zooming", true);
         var w = d3.select(window).on("mouseup.grab", function() {
-          path.classed("zooming", false);
+          path.classed("tg-world--zooming", false);
           w.on("mouseup.grab", null);
         });
       });
 
-    svg.selectAll(".foreground")
+    svg.selectAll(".tg-world__foreground")
       .call(d3.geo.zoom().projection(getProjection('Globe'))
         .scaleExtent([originalGlobeScale, originalGlobeScale * 10])
         .on("zoom.redraw", function() {
@@ -157,14 +158,14 @@ function ensureGlobeInitialized() {
 
 function initMapData() {
   d3.json("world-110m2.json", function(error, world) {
-    svg.insert("path", ".graticule")
+    svg.insert("path", ".tg-world__graticule")
       .datum(topojson.feature(world, world.objects.land))
-      .attr("class", "land")
+      .attr("class", "tg-world__land")
       .attr("d", getPath());
 
-    svg.insert("path", ".graticule")
+    svg.insert("path", ".tg-world__graticule")
       .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
-      .attr("class", "boundary")
+      .attr("class", "tg-world__boundary")
       .attr("d", getPath());
   });
 }
@@ -215,7 +216,7 @@ function setGlobeCenter(position) {
 }
 
 function unbindZoom() {
-  svg.selectAll(".foreground")
+  svg.selectAll(".tg-world__foreground")
     .on("mousedown.zoom", null)
     .on("mousewheel.zoom", null)
     .on("mousemove.zoom", null)
@@ -265,7 +266,7 @@ function showGlobe() {
                     d3.event.sourceEvent.preventDefault();
                     svg.selectAll("path").attr("d", path);
                   });
-                svg.selectAll(".foreground").call(zoom);
+                svg.selectAll(".tg-world__foreground").call(zoom);
               }
             );
             currentView = "Globe";
@@ -310,7 +311,7 @@ function showMap() {
                 mapItems.attr("transform","translate("+ d3.event.translate.join(",")+")scale("+d3.event.scale+")");
                 mapItems.attr("d", getPath('Map')); 
               });
-            svg.selectAll(".foreground").call(zoom);
+            svg.selectAll(".tg-world__foreground").call(zoom);
             currentView = "Map";
           });
 }
