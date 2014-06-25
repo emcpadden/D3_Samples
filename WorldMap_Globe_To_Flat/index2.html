@@ -1,18 +1,22 @@
+
 <!DOCTYPE html>
 <meta charset="utf-8">
+<title>Rotate the World</title>
 <style>
 
 body {
-  background: #fcfcfa;
-  height: 500px;
-  position: relative;
-  width: 960px;
+  margin: 0;
+  padding: 0;
 }
 
-#projection-menu {
+#map {
+  width: 1000px;
+  margin: 0 auto;
+}
+
+#map h1 {
   position: absolute;
-  right: 10px;
-  top: 10px;
+  width: 1000px;
 }
 
 .foreground {
@@ -29,99 +33,102 @@ body {
   cursor: -moz-grabbing;
 }
 
-.stroke {
-  stroke: #50576A;
-  stroke-width: .5px;
-  fill: none;
-}
-
-.fill {
-  fill: #eff0ff;
-}
-
 .graticule {
   fill: none;
   stroke: #636B62;
   stroke-width: .5px;
   stroke-dasharray: 2,2;
-  opacity: .5;
 }
 
 .land {
-  fill: #777;
+  fill: #69D2E7;
   stroke: none;
 }
 
-.boundary {
-  fill: none;
-  stroke: #fff;
+.mesh {
+  stroke: #50576A;
   stroke-width: .5px;
+  fill: none;
 }
 
-
+.point {
+  fill: #f00;
+}
 
 </style>
-<button id="recenterBtn">RECENTER</button>
-<button id="recenter1Btn">RECENTER1</button>
-<select id="projection-menu"></select>
-<script src="http://d3js.org/d3.v3.js"></script>
+
+<div id="map">
+  <h1>Rotate the World</h1>
+</div>
+<p class="caption">Drag to rotate the world.  Scroll or pinch to zoom.
+
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="http://d3js.org/d3.geo.projection.v0.min.js"></script>
 <script src="http://d3js.org/topojson.v1.min.js"></script>
 <script src="d3.geo.zoom.js"></script>
 <script>
 
-var width = 960,
-    height = 500;
-
-var globeProjection = d3.geo.orthographic()
-    .scale(250)
-    .translate([width / 2, height / 2])
-    .clipAngle(90)
-    .rotate([90,0])
-    //.center([-50,-100])
-    .precision(.1); // .707
-
-var originalGlobeScale = globeProjection.scale();
-var originalGlobeRotate = globeProjection.rotate();
-var originalGlobeCenter = globeProjection.center();
-var originalGlobeTranslate = globeProjection.translate();
+var svg = null,
+    path = null,
+    width = 1000,
+    height = 600;
 
 
-var flatProjection = d3.geo.cylindricalStereographic();
+function orthographicProjection(width, height) {
+  return d3.geo.orthographic()
+      .precision(.5)
+      .clipAngle(90)
+      .clipExtent([[1, 1], [width - 1, height - 1]])
+      .translate([width / 2, height / 2])
+      .scale(width / 2 - 10)
+      .rotate([0, -30]);
+}
 
-var originalFlatScale = flatProjection.scale();
-var originalFlatTranslate = flatProjection.translate();
-var originalFlatRotate = flatProjection.rotate();
-var originalFlatCenter = flatProjection.center();
 
-var zoom = null;
 
-var options = [
-  {name: "Globe", projection: globeProjection},
-  {name: "Flat", projection: flatProjection},
-];
+d3.selectAll("#map")
+    .data([
+      orthographicProjection(width, height)
+          .scale(245)
+          .translate([width / 2, height * .56])
+    ])
+  .append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .each(function(projection) {
+          path = d3.geo.path().projection(projection);
+          svg = d3.select(this).call(drawMap, path);
+      svg.selectAll(".foreground")
+          .call(d3.geo.zoom().projection(projection)
+            .scaleExtent([projection.scale() * .7, projection.scale() * 10])
+            .on("zoom.redraw", function() {
+              d3.event.sourceEvent.preventDefault();
+              svg.selectAll("path").attr("d", path);
+            }));
+    });
 
-options.forEach(function(o) {
-  //o.projection.rotate([0, 0]).center([0, 0]);
+
+
+d3.json("world-110m2.json", function(error, world) {
+  d3.selectAll("svg").insert("path", ".foreground")
+      .datum(topojson.feature(world, world.objects.land))
+      .attr("class", "land");
+  d3.selectAll("svg").insert("path", ".foreground")
+      .datum(topojson.mesh(world, world.objects.countries))
+      .attr("class", "mesh");
+  svg.selectAll("path").attr("d", path);
 });
 
-var projection = globeProjection;
-
-var path = d3.geo.path()
-    .projection(projection);
-
-var graticule = d3.geo.graticule();
-
-var svg = d3.select("body").append("svg")
-    .attr("width", width)
-    .attr("height", height);
+function drawMap(svg, path) {
+  var projection = path.projection();
 
   svg.append("path")
-    .datum(graticule)
-    .attr("class", "graticule")
-    .attr("d", path);
+      .datum(d3.geo.graticule())
+      .attr("class", "graticule")
+      .attr("d", path);
 
-  var sphere = svg.append("path")
+  svg.append("path")
       .datum({type: "Sphere"})
       .attr("class", "foreground")
       .attr("d", path)
@@ -133,263 +140,7 @@ var svg = d3.select("body").append("svg")
               w.on("mouseup.grab", null);
             });
       });
-
-      svg.selectAll(".foreground")
-          .call(d3.geo.zoom().projection(projection)
-            .scaleExtent([originalFlatScale, originalFlatScale * 10])
-            .on("zoom.redraw", function() {
-              d3.event.sourceEvent.preventDefault();
-              svg.selectAll("path").attr("d", path);
-            }));
-
-d3.json("world-110m2.json", function(error, world) {
-  svg.insert("path", ".graticule")
-      .datum(topojson.feature(world, world.objects.land))
-      .attr("class", "land")
-      .attr("d", path);
-
-
-  svg.insert("path", ".graticule")
-      .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
-      .attr("class", "boundary")
-      .attr("d", path);
-       
-});
-
-
-var recenterBtn = d3.select("#recenterBtn").on("click", function() {
-  recenter([90,0,0]);
-});
-
-var recenter1Btn = d3.select("#recenter1Btn").on("click", function() {
-  recenter([-66.00356746341971, -33.84034436961035,0]);
-});
-
-var menu = d3.select("#projection-menu")
-    .on("change", change);
-
-menu.selectAll("option")
-    .data(options)
-  .enter().append("option")
-    .text(function(d) { return d.name; });
-
-function change() {
-
-  update(options[this.selectedIndex]);
 }
 
-function recenter(position) {
-
-  //globeProjection.rotate(position)
-  svg.selectAll("path")
-  .transition()
-  .duration(1200) 
-/*
-  .tween("rotate", function() {
-          var r = d3.interpolate(projection.rotate(), position);
-          return function(t) {
-            projection.rotate(r(t));
-            d3.select(this).attr("d", path);
-          };
-        })  
-*/
-.tween("rotate", function() {
-          var r = d3.interpolate(globeProjection.rotate(), position);
-          return function(t) {
-            globeProjection.rotate(r(t));
-            d3.select(this).attr("d", d3.geo.path().projection(globeProjection));
-          };
-        })  
-
-
-}
-
-function update(option) {
-  if(option.name === "Globe") {
-    var map = svg.selectAll("path")
-    zoom.translate([0,0]).scale(1).event(map.transition().duration(1200));
-    setTimeout(
-      function() {
-        svg.selectAll(".foreground")
-          .on("mousedown.zoom", null)
-          .on("mousewheel.zoom", null)
-          .on("mousemove.zoom", null)
-          .on("DOMMouseScroll.zoom", null)
-          .on("dblclick.zoom", null)
-          .on("touchstart.zoom", null)
-          .on("touchmove.zoom", null)
-          .on("touchend.zoom", null)
-          .on("zoom", null)
-          .on("zoomstart", null)
-          .on("zoomend", null)
-          .on("wheel.zoom", null)
-          .on("mousewheel.zoom", null)
-          .on("MozMousePixelScroll.zoom", null)
-          .on(".zoom", null);
-
-        map
-          .transition()
-          .duration(750)
-          .attrTween("d", projectionTween("Globe"))
-          .transition()
-
-          .duration(1200)
-    .tween("rotate", function() {
-          var r = d3.interpolate(globeProjection.rotate(), [90,0]);
-          return function(t) {
-            globeProjection.rotate(r(t));
-            d3.select(this).attr("d", d3.geo.path().projection(globeProjection));
-          };
-        })  
-  
-
-          .transition()
-          .each('end', 
-            function() {
-
-              path = d3.geo.path().projection(globeProjection);
-              zoom = d3.geo.zoom().projection(globeProjection)
-                .scaleExtent([originalGlobeScale, originalGlobeScale * 10])
-                .on("zoom.redraw", function() {
-                  d3.event.sourceEvent.preventDefault();
-                  svg.selectAll("path").attr("d", path);
-                });
-
-      svg.selectAll(".foreground")
-          .call(zoom);
-         
-      });
-
-
-  }
-
-
-
-, 500);
-
-  /*
-  .transition()
-    .duration(800)
-*/
-//translate(-94.07551511145323,-21.06920603567572) scale(1.148698354997035)
-
-
-/*
-    .tween("scale", function() {
-          var s = d3.interpolate(flatProjection.scale(), originalFlatScale);
-          return function(t) {
-            flatProjection.scale(s(t));
-            d3.select(this).attr("d", path);
-          };
-        })  
-*/
-
-/*
-      svg.selectAll(".foreground")
-          .call(d3.geo.zoom().projection(globeProjection)
-            .scaleExtent([globeProjection.scale() * .7, globeProjection.scale() * 10])
-            .on("zoom.redraw", function() {
-              d3.event.sourceEvent.preventDefault();
-              svg.selectAll("path").attr("d", path);
-            }));
-*/
-//projection = globeProjection;
-
-  }
-  else {
-
-
-   svg.selectAll(".foreground")
-    .on("mousedown.zoom", null)
-    .on("mousewheel.zoom", null)
-    .on("mousemove.zoom", null)
-    .on("DOMMouseScroll.zoom", null)
-    .on("dblclick.zoom", null)
-    .on("touchstart.zoom", null)
-    .on("touchmove.zoom", null)
-    .on("touchend.zoom", null)
-    .on("zoom", null)
-    .on("zoomstart", null)
-    .on("zoomend", null)
-    .on("wheel.zoom", null)
-    .on("mousewheel.zoom", null)
-    .on("MozMousePixelScroll.zoom", null)
-    .on(".zoom", null);
-
-
-  svg.selectAll("path").transition()
-    .duration(800)
-    .tween("scale", function() {
-          var s = d3.interpolate(globeProjection.scale(), originalGlobeScale);
-          return function(t) {
-            globeProjection.scale(s(t));
-            d3.select(this).attr("d", path);
-          };
-        })  
-    .duration(800)
-    .tween("rotate", function() {
-          var r = d3.interpolate(globeProjection.rotate(), [0,0,0]);
-          return function(t) {
-            globeProjection.rotate(r(t));
-            d3.select(this).attr("d", path);
-          };
-        })  
-  .transition()
-      .duration(750)
-      .attrTween("d", projectionTween("Flat"))
-  .transition()
-    .each('end', 
-      function() {
-        path = d3.geo.path().projection(flatProjection);
-        //var mapItems = svg.selectAll('path');
-        zoom = d3.behavior.zoom()
-            .size([width, height])
-            .scaleExtent([1, 5])
-            .on("zoom",function() {
-                svg.selectAll('path').attr("transform","translate("+ 
-                  d3.event.translate.join(",")+")scale("+d3.event.scale+")");
-                svg.selectAll('path').attr("d", path); 
-          });
-
-           svg.selectAll(".foreground").call(zoom);
-      });
-
-  }
-}
-
-function projectionTween(view) {
-
-  var projection0 = (view === "Flat" ? globeProjection : flatProjection);
-  var projection1 = (view === "Flat" ? flatProjection : globeProjection);
-
-  return function(d) {
-    var t = 0;
-
-    var projection = d3.geo.projection(project)
-        .scale(1)
-        .translate([width / 2, height / 2])
-    if(view === "Flat") {
-      projection.clipAngle(null);
-    }
-    else {
-      projection.clipAngle(90); 
-    }
-
-    var path = d3.geo.path()
-        .projection(projection);
-
-    function project(λ, φ) {
-      λ *= 180 / Math.PI, φ *= 180 / Math.PI;
-      var p0 = projection0([λ, φ]);
-      var p1 = projection1([λ, φ]);
-      return [(1 - t) * p0[0] + t * p1[0], (1 - t) * -p0[1] + t * -p1[1]];
-    }
-
-    return function(time) {
-      t = time;
-      return path(d);
-    };
-  };
-}
 
 </script>
