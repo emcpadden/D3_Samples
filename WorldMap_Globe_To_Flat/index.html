@@ -78,8 +78,7 @@ var globeProjection = d3.geo.orthographic()
     .translate([width / 2, height / 2])
     .clipAngle(90)
     .rotate([90,0])
-    //.center([-50,-100])
-    .precision(.1); // .707
+    .precision(.1);
 
 var originalGlobeScale = globeProjection.scale();
 var originalGlobeRotate = globeProjection.rotate();
