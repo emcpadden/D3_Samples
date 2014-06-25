@@ -110,11 +110,9 @@ var zoom = null;
 
 var svg = d3.select("body").append("svg").attr("width", width).attr("height", height);
 
-var path = d3.geo.path()
-    .projection(globeProjection);
-
+currentView = "Globe";
+var path = getPath();
 var graticule = d3.geo.graticule();
-
 
 svg.append("path")
   .datum(graticule)
@@ -143,22 +141,32 @@ svg.selectAll(".foreground")
     })
   );
 
-currentView = "Globe";
 
 d3.json("world-110m2.json", function(error, world) {
   svg.insert("path", ".graticule")
     .datum(topojson.feature(world, world.objects.land))
     .attr("class", "land")
-    .attr("d", path);
+    .attr("d", getPath());
 
   svg.insert("path", ".graticule")
     .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
     .attr("class", "boundary")
-    .attr("d", path);
+    .attr("d", getPath());
 });
 
+function getProjection(view) {
+  if(typeof view === 'undefined' || view === null) {
+    view = currentView;
+  }
+  return view === "Globe" ? globeProjection : flatProjection;
+}
+
+function getPath(view) {
+  return d3.geo.path().projection(getProjection(view));
+}
+
 function updateMapData() {
-  
+
 }
 
 function setGlobeCenter(position) {
@@ -166,10 +174,10 @@ function setGlobeCenter(position) {
     .transition()
     .duration(1200) 
     .tween("rotate", function() {
-      var r = d3.interpolate(globeProjection.rotate(), position);
+      var r = d3.interpolate(getProjection().rotate(), position);
       return function(t) {
-        globeProjection.rotate(r(t));
-        d3.select(this).attr("d", d3.geo.path().projection(globeProjection));
+        getProjection().rotate(r(t));
+        d3.select(this).attr("d", getPath());
       };
     });
 }
@@ -208,17 +216,17 @@ function showGlobe() {
           .transition()
             .duration(1200)
               .tween("rotate", function() {
-                var r = d3.interpolate(globeProjection.rotate(), originalGlobeRotate);
+                var r = d3.interpolate(getProjection('Globe').rotate(), originalGlobeRotate);
                   return function(t) {
-                    globeProjection.rotate(r(t));
-                    d3.select(this).attr("d", d3.geo.path().projection(globeProjection));
+                    getProjection('Globe').rotate(r(t));
+                    d3.select(this).attr("d", getPath('Globe'));
                   };
                 })  
           .transition()
             .each('end', 
               function() {
-                path = d3.geo.path().projection(globeProjection);
-                zoom = d3.geo.zoom().projection(globeProjection)
+                path = getPath('Globe');
+                zoom = d3.geo.zoom().projection(getProjection('Globe'))
                   .scaleExtent([originalGlobeScale, originalGlobeScale * 10])
                   .on("zoom.redraw", function() {
                     d3.event.sourceEvent.preventDefault();
@@ -237,18 +245,18 @@ function showMap() {
     .transition()
       .duration(400)
       .tween("scale", function() {
-        var s = d3.interpolate(globeProjection.scale(), originalGlobeScale);
+        var s = d3.interpolate(getProjection('Globe').scale(), originalGlobeScale);
         return function(t) {
-          globeProjection.scale(s(t));
+          getProjection('Globe').scale(s(t));
           d3.select(this).attr("d", path);
         };
       })  
       .transition()
         .duration(800)
         .tween("rotate", function() {
-          var r = d3.interpolate(globeProjection.rotate(), [0,0,0]);
+          var r = d3.interpolate(getProjection('Globe').rotate(), [0,0,0]);
           return function(t) {
-            globeProjection.rotate(r(t));
+            getProjection('Globe').rotate(r(t));
             d3.select(this).attr("d", path);
           };
         }
@@ -259,7 +267,7 @@ function showMap() {
       .transition()
         .each('end', 
           function() {
-            path = d3.geo.path().projection(flatProjection);
+            path = d3.geo.path().projection(getProjection('Map'));
             var mapItems = svg.selectAll('path');
             zoom = d3.behavior.zoom()
               .size([width, height])
@@ -269,14 +277,13 @@ function showMap() {
                 mapItems.attr("d", path); 
               });
             svg.selectAll(".foreground").call(zoom);
-
             currentView = "Map";
           });
 }
 
 function projectionTween(view) {
-  var projection0 = (view === "Flat" ? globeProjection : flatProjection);
-  var projection1 = (view === "Flat" ? flatProjection : globeProjection);
+  var projection0 = (view === "Flat" ? getProjection('Globe') : getProjection('Map'));
+  var projection1 = (view === "Flat" ? getProjection('Map') : getProjection('Globe'));
   return function(d) {
     var t = 0;
     var projection = d3.geo.projection(project)
