@@ -102,7 +102,7 @@ var options = [
 ];
 
 options.forEach(function(o) {
-  o.projection.rotate([0, 0]).center([0, 0]);
+  //o.projection.rotate([0, 0]).center([0, 0]);
 });
 
 var projection = globeProjection;
@@ -158,11 +158,11 @@ d3.json("world-110m2.json", function(error, world) {
 
 
 var recenterBtn = d3.select("#recenterBtn").on("click", function() {
-  recenter([0,0]);
+  recenter([90,0,0]);
 });
 
 var recenter1Btn = d3.select("#recenter1Btn").on("click", function() {
-  recenter([-66.00356746341971, -33.84034436961035]);
+  recenter([-66.00356746341971, -33.84034436961035,0]);
 });
 
 var menu = d3.select("#projection-menu")
@@ -180,10 +180,11 @@ function change() {
 
 function recenter(position) {
 
-  projection.rotate(position)
+  //globeProjection.rotate(position)
   svg.selectAll("path")
   .transition()
-  .duration(1200)
+  .duration(1200) 
+/*
   .tween("rotate", function() {
           var r = d3.interpolate(projection.rotate(), position);
           return function(t) {
@@ -191,13 +192,22 @@ function recenter(position) {
             d3.select(this).attr("d", path);
           };
         })  
-  
+*/
+.tween("rotate", function() {
+          var r = d3.interpolate(globeProjection.rotate(), position);
+          return function(t) {
+            globeProjection.rotate(r(t));
+            d3.select(this).attr("d", d3.geo.path().projection(globeProjection));
+          };
+        })  
+
+
 }
 
 function update(option) {
   if(option.name === "Globe") {
     var map = svg.selectAll("path")
-    zoom.translate([0,0]).scale(1).event(map.transition().duration(200));
+    zoom.translate([0,0]).scale(1).event(map.transition().duration(1200));
     setTimeout(
       function() {
         svg.selectAll(".foreground")
@@ -216,13 +226,27 @@ function update(option) {
           .on("mousewheel.zoom", null)
           .on("MozMousePixelScroll.zoom", null)
           .on(".zoom", null);
+
         map
           .transition()
           .duration(750)
           .attrTween("d", projectionTween("Globe"))
           .transition()
+
+          .duration(1200)
+    .tween("rotate", function() {
+          var r = d3.interpolate(globeProjection.rotate(), [90,0]);
+          return function(t) {
+            globeProjection.rotate(r(t));
+            d3.select(this).attr("d", d3.geo.path().projection(globeProjection));
+          };
+        })  
+  
+
+          .transition()
           .each('end', 
             function() {
+
               path = d3.geo.path().projection(globeProjection);
               zoom = d3.geo.zoom().projection(globeProjection)
                 .scaleExtent([originalGlobeScale, originalGlobeScale * 10])
@@ -233,8 +257,14 @@ function update(option) {
 
       svg.selectAll(".foreground")
           .call(zoom);
+         
       });
+
+
   }
+
+
+
 , 500);
 
   /*
