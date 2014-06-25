@@ -94,71 +94,107 @@ var height = 500;
 
 var currentView = null;
 
-var globeProjection = d3.geo.orthographic()
-    .scale(250)
-    .translate([width / 2, height / 2])
-    .clipAngle(90)
-    .rotate([90,0])
-    .precision(.1);
-var originalGlobeScale = globeProjection.scale();
-var originalGlobeRotate = globeProjection.rotate();
+var globeProjection = null;
+var originalGlobeScale = null;
+var originalGlobeRotate = null;
 
-var flatProjection = d3.geo.cylindricalStereographic();
-var originalFlatScale = flatProjection.scale();
+var flatProjection = null;
+var originalFlatScale = null;
 
 var zoom = null;
 
 var svg = d3.select("body").append("svg").attr("width", width).attr("height", height);
-
-currentView = "Globe";
-var path = getPath();
 var graticule = d3.geo.graticule();
 
-svg.append("path")
-  .datum(graticule)
-  .attr("class", "graticule")
-  .attr("d", path);
+currentView = "Globe";
 
-var sphere = svg.append("path")
-  .datum({type: "Sphere"})
-  .attr("class", "foreground")
-  .attr("d", path)
-  .on("mousedown.grab", function() {
-    var point;
-    var path = d3.select(this).classed("zooming", true);
-    var w = d3.select(window).on("mouseup.grab", function() {
-        path.classed("zooming", false);
-        w.on("mouseup.grab", null);
+function initialize() {
+  if(typeof currentView === 'undefined' || currentView === null) {
+    currentView = "Globe";
+  }  
+  svg.append("path")
+    .datum(graticule)
+    .attr("class", "graticule")
+    .attr("d", getPath());
+
+  // TODO: NEED TO BETTER HANDLE THECASE WHERE THE MAP IS DISPLAYED FIRST
+  //if(currentView === "Globe") {
+    ensureGlobeInitialized();
+  //}
+
+  initMapData();
+}
+
+var globeInitialized = false;
+function ensureGlobeInitialized() {
+  if(!globeInitialized) {
+    var path = getPath('Globe');
+    svg.append("path")
+      .datum({type: "Sphere"})
+      .attr("class", "foreground")
+      .attr("d", path)
+      .on("mousedown.grab", function() {
+        var point;
+        var path = d3.select(this).classed("zooming", true);
+        var w = d3.select(window).on("mouseup.grab", function() {
+          path.classed("zooming", false);
+          w.on("mouseup.grab", null);
+        });
       });
-    });
 
-svg.selectAll(".foreground")
-  .call(d3.geo.zoom().projection(globeProjection)
-    .scaleExtent([originalFlatScale, originalFlatScale * 10])
-    .on("zoom.redraw", function() {
-      d3.event.sourceEvent.preventDefault();
-      svg.selectAll("path").attr("d", path);
-    })
-  );
+    svg.selectAll(".foreground")
+      .call(d3.geo.zoom().projection(getProjection('Globe'))
+        .scaleExtent([originalGlobeScale, originalGlobeScale * 10])
+        .on("zoom.redraw", function() {
+          d3.event.sourceEvent.preventDefault();
+          svg.selectAll("path").attr("d", path);
+        })
+      );
 
+    globeInitialized = true;
+  }
+}
 
-d3.json("world-110m2.json", function(error, world) {
-  svg.insert("path", ".graticule")
-    .datum(topojson.feature(world, world.objects.land))
-    .attr("class", "land")
-    .attr("d", getPath());
+function initMapData() {
+  d3.json("world-110m2.json", function(error, world) {
+    svg.insert("path", ".graticule")
+      .datum(topojson.feature(world, world.objects.land))
+      .attr("class", "land")
+      .attr("d", getPath());
 
-  svg.insert("path", ".graticule")
-    .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
-    .attr("class", "boundary")
-    .attr("d", getPath());
-});
+    svg.insert("path", ".graticule")
+      .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+      .attr("class", "boundary")
+      .attr("d", getPath());
+  });
+}
 
 function getProjection(view) {
+  var projection = null
   if(typeof view === 'undefined' || view === null) {
     view = currentView;
   }
-  return view === "Globe" ? globeProjection : flatProjection;
+  if(view === 'Globe') {
+    if(globeProjection === null) {
+      globeProjection = d3.geo.orthographic()
+        .scale(250)
+        .translate([width / 2, height / 2])
+        .clipAngle(90)
+        .rotate([90,0])
+        .precision(.1);
+      originalGlobeScale = globeProjection.scale();
+      originalGlobeRotate = globeProjection.rotate();
+    }
+    projection = globeProjection;
+  }
+  else if(view === 'Map') {
+    if(flatProjection === null) {
+      flatProjection = d3.geo.cylindricalStereographic();
+      originalFlatScale = flatProjection.scale();
+    }
+    projection = flatProjection;
+  }
+  return projection;
 }
 
 function getPath(view) {
@@ -209,6 +245,7 @@ function showGlobe() {
   setTimeout(
     function() {
         unbindZoom();
+        ensureGlobeInitialized();
         map
           .transition()
             .duration(750)
@@ -241,6 +278,7 @@ function showGlobe() {
 
 function showMap() {
   unbindZoom();
+  var globePath = getPath('Globe');
   svg.selectAll("path")
     .transition()
       .duration(400)
@@ -248,7 +286,7 @@ function showMap() {
         var s = d3.interpolate(getProjection('Globe').scale(), originalGlobeScale);
         return function(t) {
           getProjection('Globe').scale(s(t));
-          d3.select(this).attr("d", path);
+          d3.select(this).attr("d", globePath);
         };
       })  
       .transition()
@@ -257,7 +295,7 @@ function showMap() {
           var r = d3.interpolate(getProjection('Globe').rotate(), [0,0,0]);
           return function(t) {
             getProjection('Globe').rotate(r(t));
-            d3.select(this).attr("d", path);
+            d3.select(this).attr("d", globePath);
           };
         }
       )  
@@ -274,7 +312,7 @@ function showMap() {
               .scaleExtent([1, 5])
               .on("zoom",function() {
                 mapItems.attr("transform","translate("+ d3.event.translate.join(",")+")scale("+d3.event.scale+")");
-                mapItems.attr("d", path); 
+                mapItems.attr("d", getPath('Map')); 
               });
             svg.selectAll(".foreground").call(zoom);
             currentView = "Map";
@@ -309,5 +347,7 @@ function projectionTween(view) {
     };
   };
 }
+
+initialize();
 
 </script>
