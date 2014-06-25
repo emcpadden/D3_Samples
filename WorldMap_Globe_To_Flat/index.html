@@ -62,7 +62,7 @@ body {
 
 </style>
 <button id="globeBtn">GLOBE</button>
-<button id="flatBtn">FLAT</button>
+<button id="mapBtn">MAP</button>
 <button id="recenterBtn">RECENTER</button>
 <button id="recenter1Btn">RECENTER1</button>
 <script src="http://d3js.org/d3.v3.min.js"></script>
@@ -75,7 +75,7 @@ body {
 d3.select("#globeBtn").on("click", function() {
   showGlobe();
 });
-d3.select("#flatBtn").on("click", function() {
+d3.select("#mapBtn").on("click", function() {
   showMap();
 });
 
@@ -98,8 +98,8 @@ var globeProjection = null;
 var originalGlobeScale = null;
 var originalGlobeRotate = null;
 
-var flatProjection = null;
-var originalFlatScale = null;
+var mapProjection = null;
+var originalMapScale = null;
 
 var zoom = null;
 
@@ -188,21 +188,17 @@ function getProjection(view) {
     projection = globeProjection;
   }
   else if(view === 'Map') {
-    if(flatProjection === null) {
-      flatProjection = d3.geo.cylindricalStereographic();
-      originalFlatScale = flatProjection.scale();
+    if(mapProjection === null) {
+      mapProjection = d3.geo.cylindricalStereographic();
+      originalMapScale = mapProjection.scale();
     }
-    projection = flatProjection;
+    projection = mapProjection;
   }
   return projection;
 }
 
 function getPath(view) {
   return d3.geo.path().projection(getProjection(view));
-}
-
-function updateMapData() {
-
 }
 
 function setGlobeCenter(position) {
@@ -301,7 +297,7 @@ function showMap() {
       )  
       .transition()
         .duration(750)
-        .attrTween("d", projectionTween("Flat"))
+        .attrTween("d", projectionTween("Map"))
       .transition()
         .each('end', 
           function() {
@@ -320,14 +316,14 @@ function showMap() {
 }
 
 function projectionTween(view) {
-  var projection0 = (view === "Flat" ? getProjection('Globe') : getProjection('Map'));
-  var projection1 = (view === "Flat" ? getProjection('Map') : getProjection('Globe'));
+  var projection0 = (view === "Map" ? getProjection('Globe') : getProjection('Map'));
+  var projection1 = (view === "Map" ? getProjection('Map') : getProjection('Globe'));
   return function(d) {
     var t = 0;
     var projection = d3.geo.projection(project)
         .scale(1)
         .translate([width / 2, height / 2])
-    if(view === "Flat") {
+    if(view === "Map") {
       projection.clipAngle(null);
     }
     else {
