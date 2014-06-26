@@ -37,7 +37,8 @@
 //OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 //ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-(function() {
+/* global d3:true */
+(function(d3) {
 
 var radians = Math.PI / 180,
     degrees = 180 / Math.PI;
@@ -53,15 +54,17 @@ d3.geo.zoom = function() {
           var mouse0 = d3.mouse(this),
               rotate = quaternionFromEuler(projection.rotate()),
               point = position(projection, mouse0);
-          if (point) zoomPoint = point;
+          if (point) {
+            zoomPoint = point;
+          }
 
           zoomOn.call(zoom, "zoom", function() {
                 projection.scale(d3.event.scale);
                 var mouse1 = d3.mouse(this),
                     between = rotateBetween(zoomPoint, position(projection, mouse1));
-                projection.rotate(eulerFromQuaternion(rotate = between
-                    ? multiply(rotate, between)
-                    : multiply(bank(projection, mouse0, mouse1), rotate)));
+                projection.rotate(eulerFromQuaternion(rotate = between ? 
+                  multiply(rotate, between) : 
+                  multiply(bank(projection, mouse0, mouse1), rotate)));
                 mouse0 = mouse1;
                 event.zoom.apply(this, arguments);
               });
@@ -87,15 +90,15 @@ function bank(projection, p0, p1) {
 }
 
 function position(projection, point) {
-  var t = projection.translate(),
-      spherical = projection.invert(point);
+  /*var t = */projection.translate();
+  var spherical = projection.invert(point);
   return spherical && isFinite(spherical[0]) && isFinite(spherical[1]) && cartesian(spherical);
 }
 
 function quaternionFromEuler(euler) {
-  var λ = .5 * euler[0] * radians,
-      φ = .5 * euler[1] * radians,
-      γ = .5 * euler[2] * radians,
+  var λ = 0.5 * euler[0] * radians,
+      φ = 0.5 * euler[1] * radians,
+      γ = 0.5 * euler[2] * radians,
       sinλ = Math.sin(λ), cosλ = Math.cos(λ),
       sinφ = Math.sin(φ), cosφ = Math.cos(φ),
       sinγ = Math.sin(γ), cosγ = Math.cos(γ);
@@ -119,10 +122,12 @@ function multiply(a, b) {
 }
 
 function rotateBetween(a, b) {
-  if (!a || !b) return;
+  if (!a || !b) {
+    return;
+  }
   var axis = cross(a, b),
       norm = Math.sqrt(dot(axis, axis)),
-      halfγ = .5 * Math.acos(Math.max(-1, Math.min(1, dot(a, b)))),
+      halfγ = 0.5 * Math.acos(Math.max(-1, Math.min(1, dot(a, b)))),
       k = Math.sin(halfγ) / norm;
   return norm && [Math.cos(halfγ), axis[2] * k, -axis[1] * k, axis[0] * k];
 }
@@ -147,7 +152,9 @@ function cartesian(spherical) {
 }
 
 function dot(a, b) {
-  for (var i = 0, n = a.length, s = 0; i < n; ++i) s += a[i] * b[i];
+  for (var i = 0, n = a.length, s = 0; i < n; ++i) {
+    s += a[i] * b[i];
+  }
   return s;
 }
 
@@ -159,4 +166,4 @@ function cross(a, b) {
   ];
 }
 
-})();
+})(d3);
