@@ -4,6 +4,39 @@
 // NOTE: This library was gotten from an article that Jason Davies wrote 
 // called "Rotate the World": http://www.jasondavies.com/maps/rotate/
 
+// This file is not in Bower so I needed to put it into tgJS so it would be available
+// to other projects when you get tgJS using bower.  This file was originally 
+// named d3.geo.zoom.js but I renamed it to tgd3GeoZoom.js so we would have a better idea 
+// of where the source is when you see it in the browser.
+
+// Below is the license for this file, I included it here so that it would always be included in this work.
+//Copyright (c) 2013, Jason Davies
+//All rights reserved.
+//
+//Redistribution and use in source and binary forms, with or without
+//modification, are permitted provided that the following conditions are met:
+//
+//  * Redistributions of source code must retain the above copyright notice, this
+//    list of conditions and the following disclaimer.
+//
+//  * Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
+//    and/or other materials provided with the distribution.
+//
+//  * The name Jason Davies may not be used to endorse or promote products
+//    derived from this software without specific prior written permission.
+//
+//THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+//ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+//WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+//DISCLAIMED. IN NO EVENT SHALL JASON DAVIES BE LIABLE FOR ANY DIRECT, INDIRECT,
+//INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+//LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+//PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+//LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+//OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+//ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 (function() {
 
 var radians = Math.PI / 180,
