@@ -1,5 +1,9 @@
 // Copyright (c) 2013, Jason Davies, http://www.jasondavies.com
 // See LICENSE.txt for details.
+
+// NOTE: This library was gotten from an article that Jason Davies wrote 
+// called "Rotate the World": http://www.jasondavies.com/maps/rotate/
+
 (function() {
 
 var radians = Math.PI / 180,
