@@ -158,14 +158,13 @@ function ensureGlobeInitialized() {
         });
       });
 
-    svg.selectAll(".mx-globe__foreground")
-      .call(d3.geo.zoom().projection(getProjection('Globe'))
-        .scaleExtent([originalGlobeScale, originalGlobeScale * 10])
-        .on("zoom.redraw", function() {
-          d3.event.sourceEvent.preventDefault();
-          svg.selectAll("path").attr("d", path);
-        })
-      );
+    zoom = d3.geo.zoom().projection(getProjection('Globe'))
+            .scaleExtent([originalGlobeScale, originalGlobeScale * 10])
+            .on("zoom.redraw", function() {
+              d3.event.sourceEvent.preventDefault();
+              svg.selectAll("path").attr("d", path);
+            })
+    svg.selectAll(".mx-globe__foreground").call(zoom);
 
     globeInitialized = true;
   }
