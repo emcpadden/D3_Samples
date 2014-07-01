@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+#mq {
+  background: #fff;
+}
+
+</style>
+
+</head>
+<body>
+<h1>Magic Quadrant Experiments</h1>
+<p>This is an experiment to help create a magic quadrant chart</p>
+<div style="background: #eee; margin:20px; padding: 50px;">
+  <div id="mq" style="width: 400px; height: 400px;"></div>
+</div>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
+<script>
+
+
+var width = $('#mq').width(),
+    height = $('#mq').height();
+    //radius = (Math.min(width, height) / 2),
+    //outerRadius = radius - 10,
+    //innerRadius = outerRadius - (outerRadius * .3);
+
+var marginRight = 50;
+var marginLeft = 0;
+var marginTop = 50;
+var marginBottom = 0;
+var chartWidth = width - (marginLeft + marginRight);
+var chartHeight = height - (marginTop + marginBottom);
+
+var bands = [];
+var numberOfBands = 4;
+var innerRadius = 0;
+var outerRadius = 0;
+var fillColor = d3.rgb("#0000ff");
+for(var i = 0; i < numberOfBands; i++){
+  innerRadius = outerRadius;
+  outerRadius = (i === 0 ? (2/(numberOfBands+1))*chartWidth: (1/(numberOfBands+1))*chartWidth) + innerRadius;
+  bands.push(
+    {
+      innerRadius: innerRadius, 
+      outerRadius: outerRadius, 
+      fill: fillColor.toString()
+    });
+
+  //fillColor = fillColor.darker(1);
+}
+
+// add the bulls eye
+/*
+bands.unshift(
+  {
+    startAngle: 0,
+    endAngle: Math.PI * 2,
+    innerRadius: 0,
+    outerRadius: 20,
+    fill: fillColor.toString()
+
+  });
+*/
+var arc = d3.svg.arc()
+    .startAngle(Math.PI)
+    .endAngle(Math.PI * 1.5);
+
+var svg = d3.select("#mq").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+  .append("g")
+    .attr("transform", "translate(" + (chartWidth + marginLeft) + "," + marginTop + ")");
+
+  var g = svg.selectAll(".band")
+    .data(bands)
+    .enter().append("g")
+    .attr("class", "band");
+
+  g.append("path")
+    .attr("d", arc)
+    .style("fill", function(d,i) {
+      return d.fill;
+    })
+    .style("opacity", function(d,i) {
+      return (1 - i/numberOfBands) * .3;
+    });
+/*
+  g.append("circle")
+    .attr("r", marginTop/4)
+    .style("fill", fillColor.toString())
+    .attr('opacity', .7);
+*/
+
+</script>
+</body>
+</html>
+
