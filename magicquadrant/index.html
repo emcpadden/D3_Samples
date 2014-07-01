@@ -18,17 +18,22 @@ body {
 }
 
 .arrow {
-  stroke: #000;
+  stroke: #777;
   /*stroke-width: 10;*/
 
 }
 
+.arrowHead {
+  fill: #777;
+  /*stroke-width: 10;*/
+
+}
 .horizontal {
 
 }
 
 .arrowText {
-  color: #000;
+  fill: #fff;
 
   font-size: 12px;
   font-weight: bold;
@@ -41,6 +46,11 @@ body {
 <body>
 <h1>Magic Quadrant Experiments</h1>
 <p>This is an experiment to help create a magic quadrant chart</p>
+<p>
+  <button id="upateData1">Update Data 1</button>
+  <button id="upateData2">Update Data 2</button>
+  <button id="upateData3">Update Data 3</button>
+</p>
 <div style="background: #eee; margin:20px; padding: 50px;">
   <div id="mq" style="width: 400px; height: 400px;"></div>
 </div>
@@ -48,6 +58,89 @@ body {
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
 <script>
+
+var vendors = [
+  {
+    id: 1,
+    name: "ATT",
+    timeliness: 70,
+    accuracy: 20,
+    lineItemCount: 100,
+    value: 22000
+  },
+  {
+    id: 2,
+    name: "Granite",
+    timeliness: 15,
+    accuracy: 30,
+    lineItemCount: 100,
+    value: 1000
+  },
+  {
+    id: 3,
+    name: "Verizon",
+    timeliness: 60,
+    accuracy: 30,
+    lineItemCount: 100,
+    value: 18000
+  },
+  {
+    id: 4,
+    name: "Bell Canada",
+    timeliness: 80,
+    accuracy: 95,
+    lineItemCount: 100,
+    value: 500
+  },
+  {
+    id: 5,
+    name: "T-Mobile",
+    timeliness: 90,
+    accuracy: 75,
+    lineItemCount: 100,
+    value: 12000
+  },
+  {
+    id: 6,
+    name: "Sprint",
+    timeliness: 25,
+    accuracy: 65,
+    lineItemCount: 100,
+    value: 15000
+  },
+  {
+    id: 7,
+    name: "Orange",
+    timeliness: 50,
+    accuracy: 8,
+    lineItemCount: 100,
+    value: 3000
+  },
+  {
+    id: 8,
+    name: "Vodaphone",
+    timeliness: 15,
+    accuracy: 15,
+    lineItemCount: 100,
+    value: 7000
+  },
+  {
+    id: 9,
+    name: "Rogers",
+    timeliness: 90,
+    accuracy: 45,
+    lineItemCount: 100,
+    value: 5000
+  },
+  {
+    id: 10,
+    name: "SW Bell",
+    timeliness: 30,
+    accuracy: 20,
+    lineItemCount: 100,
+    value: 400
+  }
+];
 
 
 var width = $('#mq').width(),
@@ -89,15 +182,16 @@ var svg = d3.select("#mq").append("svg")
   var defs = svg.append('defs');
   var horizontalarrow = defs.append("marker")
     .attr("id", "arrow")
-    //.attr("viewbox", "0 0 10 10")
-    .attr("refX", 0)
-    .attr("refY", 3)
+    //.attr("viewbox", "0 0 3 3")
+    .attr("class", "arrowHead")
+    .attr("refX", 1)
+    .attr("refY", 1)
     .attr("markerUnits", "strokeWidth")
-    .attr("markerWidth", 6)
-    .attr("markerHeight", 6)
+    .attr("markerWidth", 2)
+    .attr("markerHeight", 2)
     .attr("orient", "auto")
     .append("path")
-    .attr("d", "M 0 0 L 6 3 L 0 6 z");
+    .attr("d", "M 0 0 L 2 1 L 0 2 z");
     //.attr("d", "M0,2 L4,0 L0,0 z");
 
 
@@ -108,7 +202,8 @@ var svg = d3.select("#mq").append("svg")
     .append("line")
       .attr("class", "arrow horizontal")
       .attr("marker-end", "url(#arrow)")
-      .attr("stroke-width", 3)
+      //.attr("stroke-miterlimit", 2)
+      .attr("stroke-width", marginTop / 2)
       .attr("x1", 0)
       .attr("y1", marginTop / 2)
       .attr("x2", chartWidth)
@@ -124,7 +219,7 @@ var svg = d3.select("#mq").append("svg")
     .attr("class", "arrowText")
     .attr("text-anchor", "middle")
     .attr("x", chartWidth/2)
-    .attr("y", 15)
+    .attr("y", 25)
     .text("TIMELINESS");
 
  var verticalGroup = svg.append("g")
@@ -134,7 +229,7 @@ var svg = d3.select("#mq").append("svg")
     .append("line")
       .attr("class", "arrow vertical")
       .attr("marker-end", "url(#arrow)")
-      .attr("stroke-width", 3)
+      .attr("stroke-width", marginTop / 2)
       .attr("x1", marginRight/2)
       .attr("y1", chartHeight)
       .attr("x2", marginRight/2)
@@ -144,7 +239,7 @@ var svg = d3.select("#mq").append("svg")
     .attr("class", "arrowText")
     .attr("text-anchor", "middle")
     .attr("x", -chartHeight/2)
-    .attr("y", marginRight - 3)
+    .attr("y", marginRight - 15)
     .attr("transform", function(d) {
                 return "rotate(-90)" 
                 })
@@ -165,7 +260,246 @@ var svg = d3.select("#mq").append("svg")
       return (1 - i/numberOfBands) * .3;
     });
 
+var xScale = d3.scale.linear().range([0, chartWidth])
+    .domain([0, 100]);
+var yScale = d3.scale.linear().range([chartHeight, 0])
+    .domain([0, 100]);
 
+var valueExtent = d3.extent(vendors, function(d) {
+  return d.value;
+});
+
+var rScale = d3.scale.sqrt().range([3, chartWidth*0.08])
+    .domain(valueExtent);
+
+var bubbles = svg.insert("g", ":first-child")
+    .attr("transform", "translate(" + marginLeft + "," + marginTop + ")").selectAll(".bubble")
+  .data(vendors, function(d) { return d.id; });
+
+  bubbles.enter()
+  .append('circle')
+  .attr('class', 'bubble')
+  .attr('r', function(d,i) {return rScale(d.value);})
+  .attr('cx', function(d,i) {return xScale(d.timeliness);})
+  .attr('cy', function(d,i) {return yScale(d.accuracy);});
+/*
+ bubbles.transition()
+  .attr('class', 'bubble')
+  .attr('r', 3)
+  .attr('cx', function(d,i) {return xScale(d.timeliness);})
+  .attr('cy', function(d,i) {return yScale(d.accuracy);});
+*/
+
+d3.select("#upateData1").on('click', 
+  function(){
+vendors = [
+  {
+    id: 1,
+    name: "ATT",
+    timeliness: 70,
+    accuracy: 20,
+    lineItemCount: 100,
+    value: 22000
+  },
+  {
+    id: 2,
+    name: "Granite",
+    timeliness: 15,
+    accuracy: 30,
+    lineItemCount: 100,
+    value: 1000
+  },
+  {
+    id: 3,
+    name: "Verizon",
+    timeliness: 60,
+    accuracy: 30,
+    lineItemCount: 100,
+    value: 18000
+  },
+  {
+    id: 4,
+    name: "Bell Canada",
+    timeliness: 80,
+    accuracy: 95,
+    lineItemCount: 100,
+    value: 500
+  },
+  {
+    id: 5,
+    name: "T-Mobile",
+    timeliness: 90,
+    accuracy: 75,
+    lineItemCount: 100,
+    value: 12000
+  },
+  {
+    id: 6,
+    name: "Sprint",
+    timeliness: 25,
+    accuracy: 65,
+    lineItemCount: 100,
+    value: 15000
+  },
+  {
+    id: 7,
+    name: "Orange",
+    timeliness: 50,
+    accuracy: 8,
+    lineItemCount: 100,
+    value: 3000
+  },
+  {
+    id: 8,
+    name: "Vodaphone",
+    timeliness: 15,
+    accuracy: 15,
+    lineItemCount: 100,
+    value: 7000
+  },
+  {
+    id: 9,
+    name: "Rogers",
+    timeliness: 90,
+    accuracy: 45,
+    lineItemCount: 100,
+    value: 5000
+  },
+  {
+    id: 10,
+    name: "SW Bell",
+    timeliness: 30,
+    accuracy: 20,
+    lineItemCount: 100,
+    value: 400
+  }
+];
+
+valueExtent = d3.extent(vendors, function(d) {
+  return d.value;
+});
+
+rScale = d3.scale.sqrt().range([3, chartWidth*0.08])
+    .domain(valueExtent);
+
+bubbles
+ .data(vendors)
+ .transition()
+ .duration(1500)
+  .attr('class', 'bubble')
+  .attr('r', function(d,i) {return rScale(d.value);})
+  .attr('cx', function(d,i) {return xScale(d.timeliness);})
+  .attr('cy', function(d,i) {return yScale(d.accuracy);});
+});
+
+d3.select("#upateData2").on('click', 
+  function(){
+vendors = [
+  {
+    id: 1,
+    name: "ATT",
+    timeliness: 50,
+    accuracy: 90,
+    lineItemCount: 100,
+    value: 100
+  },
+  {
+    id: 2,
+    name: "Granite",
+    timeliness: 55,
+    accuracy: 20,
+    lineItemCount: 100,
+    value: 20000
+  },
+  {
+    id: 3,
+    name: "Verizon",
+    timeliness: 99,
+    accuracy: 99,
+    lineItemCount: 100,
+    value: 20000
+  },
+  {
+    id: 4,
+    name: "Bell Canada",
+    timeliness: 50,
+    accuracy: 55,
+    lineItemCount: 100,
+    value: 10000
+  },
+  {
+    id: 5,
+    name: "T-Mobile",
+    timeliness: 60,
+    accuracy: 85,
+    lineItemCount: 100,
+    value: 9000
+  },
+  {
+    id: 6,
+    name: "Sprint",
+    timeliness: 35,
+    accuracy: 55,
+    lineItemCount: 100,
+    value: 10000
+  },
+  {
+    id: 7,
+    name: "Orange",
+    timeliness: 90,
+    accuracy: 80,
+    lineItemCount: 100,
+    value: 2000
+  },
+  {
+    id: 8,
+    name: "Vodaphone",
+    timeliness: 0,
+    accuracy: 0,
+    lineItemCount: 100,
+    value: 5000
+  },
+  {
+    id: 9,
+    name: "Rogers",
+    timeliness: 80,
+    accuracy: 75,
+    lineItemCount: 100,
+    value: 8000
+  },
+  {
+    id: 10,
+    name: "SW Bell",
+    timeliness: 50,
+    accuracy: 80,
+    lineItemCount: 100,
+    value: 200
+  }
+];
+
+valueExtent = d3.extent(vendors, function(d) {
+  return d.value;
+});
+
+rScale = d3.scale.sqrt().range([3, chartWidth*0.08])
+    .domain(valueExtent);
+
+ bubbles
+ .data(vendors)
+ .transition()
+ .duration(1500)
+  .attr('class', 'bubble')
+  .attr('r', function(d,i) {return rScale(d.value);})
+  .attr('cx', function(d,i) {return xScale(d.timeliness);})
+  .attr('cy', function(d,i) {return yScale(d.accuracy);});
+
+//bubbles.datum(vendors);
+  });
+
+d3.select("#upateData3").on('click', 
+  function(){
+
+  });
 </script>
 </body>
 </html>
