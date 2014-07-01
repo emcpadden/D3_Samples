@@ -13,6 +13,28 @@ body {
   background: #fff;
 }
 
+.band {
+  fill: #0000ff;
+}
+
+.arrow {
+  stroke: #000;
+  /*stroke-width: 10;*/
+
+}
+
+.horizontal {
+
+}
+
+.arrowText {
+  color: #000;
+
+  font-size: 12px;
+  font-weight: bold;
+}
+
+
 </style>
 
 </head>
@@ -34,9 +56,9 @@ var width = $('#mq').width(),
     //outerRadius = radius - 10,
     //innerRadius = outerRadius - (outerRadius * .3);
 
-var marginRight = 50;
+var marginRight = 40;
 var marginLeft = 0;
-var marginTop = 50;
+var marginTop = 40;
 var marginBottom = 0;
 var chartWidth = width - (marginLeft + marginRight);
 var chartHeight = height - (marginTop + marginBottom);
@@ -53,53 +75,96 @@ for(var i = 0; i < numberOfBands; i++){
     {
       innerRadius: innerRadius, 
       outerRadius: outerRadius, 
-      fill: fillColor.toString()
     });
-
-  //fillColor = fillColor.darker(1);
 }
 
-// add the bulls eye
-/*
-bands.unshift(
-  {
-    startAngle: 0,
-    endAngle: Math.PI * 2,
-    innerRadius: 0,
-    outerRadius: 20,
-    fill: fillColor.toString()
-
-  });
-*/
 var arc = d3.svg.arc()
     .startAngle(Math.PI)
     .endAngle(Math.PI * 1.5);
 
 var svg = d3.select("#mq").append("svg")
     .attr("width", width)
-    .attr("height", height)
+    .attr("height", height);
+
+  var defs = svg.append('defs');
+  var horizontalarrow = defs.append("marker")
+    .attr("id", "arrow")
+    //.attr("viewbox", "0 0 10 10")
+    .attr("refX", 0)
+    .attr("refY", 3)
+    .attr("markerUnits", "strokeWidth")
+    .attr("markerWidth", 6)
+    .attr("markerHeight", 6)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("d", "M 0 0 L 6 3 L 0 6 z");
+    //.attr("d", "M0,2 L4,0 L0,0 z");
+
+
+  var horizontalGroup = svg.append("g")
+    .attr("transform", "translate(" + marginLeft + "," + 0 + ")");
+
+  var horizontalArrow = horizontalGroup
+    .append("line")
+      .attr("class", "arrow horizontal")
+      .attr("marker-end", "url(#arrow)")
+      .attr("stroke-width", 3)
+      .attr("x1", 0)
+      .attr("y1", marginTop / 2)
+      .attr("x2", chartWidth)
+      .attr("y2", marginTop / 2);
+/*
+    horizontalGroup.append("div")
+    .attr('height', marginTop)
+    .attr('width', chartWidth)
+    .attr('background', 'transparent')
+    .append("");
+*/
+    horizontalGroup.append("text")
+    .attr("class", "arrowText")
+    .attr("text-anchor", "middle")
+    .attr("x", chartWidth/2)
+    .attr("y", 15)
+    .text("TIMELINESS");
+
+ var verticalGroup = svg.append("g")
+    .attr("transform", "translate(" + (width - marginRight) + "," + marginTop + ")");
+
+    var verticalArrow = verticalGroup
+    .append("line")
+      .attr("class", "arrow vertical")
+      .attr("marker-end", "url(#arrow)")
+      .attr("stroke-width", 3)
+      .attr("x1", marginRight/2)
+      .attr("y1", chartHeight)
+      .attr("x2", marginRight/2)
+      .attr("y2", 0);
+
+    verticalGroup.append("text")
+    .attr("class", "arrowText")
+    .attr("text-anchor", "middle")
+    .attr("x", -chartHeight/2)
+    .attr("y", marginRight - 3)
+    .attr("transform", function(d) {
+                return "rotate(-90)" 
+                })
+    .text("ACCURACY");
+
+  var bandGroup = svg
   .append("g")
     .attr("transform", "translate(" + (chartWidth + marginLeft) + "," + marginTop + ")");
 
-  var g = svg.selectAll(".band")
+  var bands = bandGroup.selectAll(".band")
     .data(bands)
     .enter().append("g")
     .attr("class", "band");
 
-  g.append("path")
+  bands.append("path")
     .attr("d", arc)
-    .style("fill", function(d,i) {
-      return d.fill;
-    })
     .style("opacity", function(d,i) {
       return (1 - i/numberOfBands) * .3;
     });
-/*
-  g.append("circle")
-    .attr("r", marginTop/4)
-    .style("fill", fillColor.toString())
-    .attr('opacity', .7);
-*/
+
 
 </script>
 </body>
