@@ -39,7 +39,7 @@ body {
 }
 
 .mx-bubblecomparechart__bubble {
-  
+
 }
 
 .bandbars,
@@ -80,7 +80,6 @@ body {
 <p>
   <button id="upateData1">Update Data 1</button>
   <button id="upateData2">Update Data 2</button>
-  <button id="upateData3">Update Data 3</button>
 </p>
 <div style="background: #eee; margin:20px; padding: 50px;">
   <div id="mq" style="width: 400px; height: 400px;"></div>
@@ -367,19 +366,20 @@ var bubbles = svg.insert("g", ":first-child")
   .attr("transform", "translate(" + marginLeft + "," + marginTop + ")").selectAll(".mx-bubblecomparechart__bubble")
     .data(vendors, function(d) { return d.id; });
 
-  bubbles.enter()
+bubbles.enter()
   .append('circle')
+  .attr('class', 'mx-bubblecomparechart__bubble')
+  .attr('r', 0)
+  .attr('cx', 0)
+  .attr('cy', chartHeight);
+
+bubbles.transition()
+  .delay(500)
+  .duration(800)
   .attr('class', 'mx-bubblecomparechart__bubble')
   .attr('r', function(d,i) {return rScale(d.value);})
   .attr('cx', function(d,i) {return xScale(d.timeliness);})
   .attr('cy', function(d,i) {return yScale(d.accuracy);});
-/*
- bubbles.transition()
-  .attr('class', 'bubble')
-  .attr('r', 3)
-  .attr('cx', function(d,i) {return xScale(d.timeliness);})
-  .attr('cy', function(d,i) {return yScale(d.accuracy);});
-*/
 
 d3.select("#upateData1").on('click', 
   function(){
@@ -587,10 +587,6 @@ rScale = d3.scale.sqrt().range([3, chartWidth*0.08])
 //bubbles.datum(vendors);
   });
 
-d3.select("#upateData3").on('click', 
-  function(){
-
-  });
 </script>
 </body>
 </html>
