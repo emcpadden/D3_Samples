@@ -13,6 +13,9 @@ body {
   background: #fff;
 }
 
+.bandbars,
+.bandbars-h,
+.bandbars-v,
 .band {
   fill: #0000ff;
 }
@@ -167,7 +170,19 @@ for(var i = 0; i < numberOfBands; i++){
   bands.push(
     {
       innerRadius: innerRadius, 
-      outerRadius: outerRadius, 
+      outerRadius: outerRadius,
+      horizontalBar: {
+        width: outerRadius - innerRadius,
+        height: marginTop,
+        x: chartWidth - outerRadius,
+        y: 0 
+      },
+      verticalBar: {
+        width: marginRight,
+        height: outerRadius - innerRadius,
+        x: chartWidth + marginLeft,
+        y: marginTop +  innerRadius
+      }
     });
 }
 
@@ -194,7 +209,56 @@ var svg = d3.select("#mq").append("svg")
     .attr("d", "M 0 0 L 2 1 L 0 2 z");
     //.attr("d", "M0,2 L4,0 L0,0 z");
 
+var bandbars_h = svg.selectAll(".bandbars-h")
+    .data(bands)
+    .enter().append("g")
+    .attr("class", "bandbars-h");
 
+  bandbars_h.append("rect")
+    .attr("width", function(d) {return d.horizontalBar.width;})
+    .attr("height", function(d) {return d.horizontalBar.height;})
+    .attr("x", function(d) {return d.horizontalBar.x;})
+    .attr("y", function(d) {return d.horizontalBar.y;})
+    .style("opacity", function(d,i) {
+      return (1 - i/numberOfBands) * .3;
+    });
+
+ var bandbars_v = svg.selectAll(".bandbars-v")
+    .data(bands)
+    .enter().append("g")
+    .attr("class", "bandbars-v");
+
+  bandbars_v.append("rect")
+    .attr("width", function(d) {return d.verticalBar.width;})
+    .attr("height", function(d) {return d.verticalBar.height;})
+    .attr("x", function(d) {return d.verticalBar.x;})
+    .attr("y", function(d) {return d.verticalBar.y;})
+    .style("opacity", function(d,i) {
+      return (1 - i/numberOfBands) * .3;
+    });
+  var bandGroup = svg
+  .append("g")
+    .attr("transform", "translate(" + (chartWidth + marginLeft) + "," + marginTop + ")");
+
+svg.append('rect')
+  .attr('width', marginRight)
+  .attr('height', marginTop)
+  .attr('x', marginLeft + chartWidth)
+  .attr('y', 0)
+  .attr('class', 'bandbars')
+  .attr('opacity', .3);
+
+
+  var bands = bandGroup.selectAll(".band")
+    .data(bands)
+    .enter().append("g")
+    .attr("class", "band");
+
+  bands.append("path")
+    .attr("d", arc)
+    .style("opacity", function(d,i) {
+      return (1 - i/numberOfBands) * .3;
+    });
   var horizontalGroup = svg.append("g")
     .attr("transform", "translate(" + marginLeft + "," + 0 + ")");
 
@@ -208,13 +272,7 @@ var svg = d3.select("#mq").append("svg")
       .attr("y1", marginTop / 2)
       .attr("x2", chartWidth)
       .attr("y2", marginTop / 2);
-/*
-    horizontalGroup.append("div")
-    .attr('height', marginTop)
-    .attr('width', chartWidth)
-    .attr('background', 'transparent')
-    .append("");
-*/
+
     horizontalGroup.append("text")
     .attr("class", "arrowText")
     .attr("text-anchor", "middle")
@@ -245,20 +303,7 @@ var svg = d3.select("#mq").append("svg")
                 })
     .text("ACCURACY");
 
-  var bandGroup = svg
-  .append("g")
-    .attr("transform", "translate(" + (chartWidth + marginLeft) + "," + marginTop + ")");
-
-  var bands = bandGroup.selectAll(".band")
-    .data(bands)
-    .enter().append("g")
-    .attr("class", "band");
-
-  bands.append("path")
-    .attr("d", arc)
-    .style("opacity", function(d,i) {
-      return (1 - i/numberOfBands) * .3;
-    });
+  
 
 var xScale = d3.scale.linear().range([0, chartWidth])
     .domain([0, 100]);
@@ -414,8 +459,8 @@ vendors = [
   {
     id: 3,
     name: "Verizon",
-    timeliness: 99,
-    accuracy: 99,
+    timeliness: 100,
+    accuracy: 100,
     lineItemCount: 100,
     value: 20000
   },
@@ -430,7 +475,7 @@ vendors = [
   {
     id: 5,
     name: "T-Mobile",
-    timeliness: 60,
+    timeliness: 0,
     accuracy: 85,
     lineItemCount: 100,
     value: 9000
@@ -439,7 +484,7 @@ vendors = [
     id: 6,
     name: "Sprint",
     timeliness: 35,
-    accuracy: 55,
+    accuracy: 0,
     lineItemCount: 100,
     value: 10000
   },
@@ -462,7 +507,7 @@ vendors = [
   {
     id: 9,
     name: "Rogers",
-    timeliness: 80,
+    timeliness: 100,
     accuracy: 75,
     lineItemCount: 100,
     value: 8000
@@ -471,7 +516,7 @@ vendors = [
     id: 10,
     name: "SW Bell",
     timeliness: 50,
-    accuracy: 80,
+    accuracy: 100,
     lineItemCount: 100,
     value: 200
   }
