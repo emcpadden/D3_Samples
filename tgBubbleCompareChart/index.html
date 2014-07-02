@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+#mq {
+  background: #fff;
+}
+
+.mx-bubblecomparechart__band {
+  fill: #0000ff;
+}
+.mx-bubblecomparechart__band--arcs {
+}
+.mx-bubblecomparechart__band--bars {
+}
+.mx-bubblecomparechart__band--bars--horizontal {
+}
+.mx-bubblecomparechart__band--bars--vertical {
+}
+.mx-bubblecomparechart__axis {
+  stroke: #777;
+}
+
+.mx-bubblecomparechart__axis__arrow {
+  fill: #777;
+}
+
+.mx-bubblecomparechart__axis__text {
+  fill: #fff;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.mx-bubblecomparechart__bubble {
+  
+}
+
+.bandbars,
+.bandbars-h,
+.bandbars-v,
+.band {
+  fill: #0000ff;
+}
+
+.arrow {
+  stroke: #777;
+  /*stroke-width: 10;*/
+
+}
+
+.arrowHead {
+  fill: #777;
+  /*stroke-width: 10;*/
+
+}
+.horizontal {
+
+}
+
+.arrowText {
+  fill: #fff;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+
+</style>
+
+</head>
+<body>
+<h1>Magic Quadrant Experiments</h1>
+<p>This is an experiment to help create a magic quadrant chart</p>
+<p>
+  <button id="upateData1">Update Data 1</button>
+  <button id="upateData2">Update Data 2</button>
+  <button id="upateData3">Update Data 3</button>
+</p>
+<div style="background: #eee; margin:20px; padding: 50px;">
+  <div id="mq" style="width: 400px; height: 400px;"></div>
+</div>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
+<!--<script src="tgBubbleCompareChart.js"></script>-->
+<script>
+
+var vendors = [
+  {
+    id: 1,
+    name: "ATT",
+    timeliness: 70,
+    accuracy: 20,
+    lineItemCount: 100,
+    value: 22000
+  },
+  {
+    id: 2,
+    name: "Granite",
+    timeliness: 15,
+    accuracy: 30,
+    lineItemCount: 100,
+    value: 1000
+  },
+  {
+    id: 3,
+    name: "Verizon",
+    timeliness: 60,
+    accuracy: 30,
+    lineItemCount: 100,
+    value: 18000
+  },
+  {
+    id: 4,
+    name: "Bell Canada",
+    timeliness: 80,
+    accuracy: 95,
+    lineItemCount: 100,
+    value: 500
+  },
+  {
+    id: 5,
+    name: "T-Mobile",
+    timeliness: 90,
+    accuracy: 75,
+    lineItemCount: 100,
+    value: 12000
+  },
+  {
+    id: 6,
+    name: "Sprint",
+    timeliness: 25,
+    accuracy: 65,
+    lineItemCount: 100,
+    value: 15000
+  },
+  {
+    id: 7,
+    name: "Orange",
+    timeliness: 50,
+    accuracy: 8,
+    lineItemCount: 100,
+    value: 3000
+  },
+  {
+    id: 8,
+    name: "Vodaphone",
+    timeliness: 15,
+    accuracy: 15,
+    lineItemCount: 100,
+    value: 7000
+  },
+  {
+    id: 9,
+    name: "Rogers",
+    timeliness: 90,
+    accuracy: 45,
+    lineItemCount: 100,
+    value: 5000
+  },
+  {
+    id: 10,
+    name: "SW Bell",
+    timeliness: 30,
+    accuracy: 20,
+    lineItemCount: 100,
+    value: 400
+  }
+];
+
+var horizontalAxisLabelText = "TIMELINESS";
+var verticalAxisLabelText = "ACCURACY";
+
+var valuePropetyName = "value"; // this is used to set the size of the dots
+
+var xAxis_MinValue = 0; 
+  // this is the minimum domain value that should represent left-most position on the x axis
+var yAxis_MinValue = 0; 
+  // this is the minimum domain value that should represent bottom-most position on the y axis
+var xAxis_MaxValue = 100; 
+  // this is the minimum domain value that should represent right-most position on the x axis
+var yAxis_MaxValue = 100; 
+  // this is the minimum domain value that should represent top-most position on the y axis
+
+var width = $('#mq').width(),
+    height = $('#mq').height();
+
+var marginRight = 40;
+var marginLeft = 0;
+var marginTop = 40;
+var marginBottom = 0;
+var chartWidth = width - (marginLeft + marginRight);
+var chartHeight = height - (marginTop + marginBottom);
+
+var bands = [];
+var numberOfBands = 4;
+var innerRadius = 0;
+var outerRadius = 0;
+var fillColor = d3.rgb("#0000ff");
+for(var i = 0; i < numberOfBands; i++){
+  innerRadius = outerRadius;
+  outerRadius = (i === 0 ? (2/(numberOfBands+1))*chartWidth: (1/(numberOfBands+1))*chartWidth) + innerRadius;
+  bands.push(
+    {
+      innerRadius: innerRadius, 
+      outerRadius: outerRadius,
+      horizontalBar: {
+        width: outerRadius - innerRadius,
+        height: marginTop,
+        x: chartWidth - outerRadius,
+        y: 0 
+      },
+      verticalBar: {
+        width: marginRight,
+        height: outerRadius - innerRadius,
+        x: chartWidth + marginLeft,
+        y: marginTop +  innerRadius
+      }
+    });
+}
+
+var arc = d3.svg.arc()
+    .startAngle(Math.PI)
+    .endAngle(Math.PI * 1.5);
+
+var svg = d3.select("#mq").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+// add a svg def for the arrow head used on
+// the lines for the horizontal and vertical 
+// axis labels
+var defs = svg.append('defs');
+defs.append("marker")
+  .attr("id", "__mx-bubblecomparechart__axis__arrow__")
+  .attr("class", "mx-bubblecomparechart__axis__arrow")
+  .attr("refX", 1)
+  .attr("refY", 1)
+  .attr("markerUnits", "strokeWidth")
+  .attr("markerWidth", 2)
+  .attr("markerHeight", 2)
+  .attr("orient", "auto")
+  .append("path")
+  .attr("d", "M 0 0 L 2 1 L 0 2 z");
+
+// draw the rectangles along the top 
+// that essentially extend the arc bands
+svg.selectAll(".mx-bubblecomparechart__band--bars--horizontal")
+  .data(bands)
+.enter().append("g")
+  .attr("class", "mx-bubblecomparechart__band mx-bubblecomparechart__band--bars mx-bubblecomparechart__band--bars--horizontal")
+  .append("rect")
+    .attr("width", function(d) {return d.horizontalBar.width;})
+    .attr("height", function(d) {return d.horizontalBar.height;})
+    .attr("x", function(d) {return d.horizontalBar.x;})
+    .attr("y", function(d) {return d.horizontalBar.y;})
+    .style("opacity", function(d,i) {
+      return (1 - i/numberOfBands) * .3;
+    });
+
+// draw the rectangles along the right side 
+// that essentially extend the arc bands
+svg.selectAll(".mx-bubblecomparechart__band--bars--vertical")
+  .data(bands)
+.enter().append("g")
+  .attr("class", "mx-bubblecomparechart__band mx-bubblecomparechart__band--bars mx-bubblecomparechart__band--bars--vertical")
+.append("rect")
+  .attr("width", function(d) {return d.verticalBar.width;})
+  .attr("height", function(d) {return d.verticalBar.height;})
+  .attr("x", function(d) {return d.verticalBar.x;})
+  .attr("y", function(d) {return d.verticalBar.y;})
+  .style("opacity", function(d,i) {
+    return (1 - i/numberOfBands) * .3;
+  });
+
+// draw the square in the upper right corner
+svg.append('rect')
+  .attr('width', marginRight)
+  .attr('height', marginTop)
+  .attr('x', marginLeft + chartWidth)
+  .attr('y', 0)
+  .attr('class', 'mx-bubblecomparechart__band mx-bubblecomparechart__band--bars')
+  .attr('opacity', .3);
+
+// draw the arc bands 
+svg.append("g")
+  .attr("transform", "translate(" + (chartWidth + marginLeft) + "," + marginTop + ")")
+.selectAll(".band")
+  .data(bands)
+  .enter().append("path")
+  .attr("class", "mx-bubblecomparechart__band  mx-bubblecomparechart__band--arcs")
+  .attr("d", arc)
+  .style("opacity", function(d,i) {
+    return (1 - i/numberOfBands) * .3;
+  });
+
+// draw the horizontal axis label
+
+// create a group to hold all of the horizontal axis items
+var horizontalGroup = svg.append("g")
+  .attr("transform", "translate(" + marginLeft + "," + 0 + ")");
+
+// Draw the arrow across the top
+horizontalGroup.append("line")
+  .attr("class", "mx-bubblecomparechart__axis")
+  .attr("marker-end", "url(#__mx-bubblecomparechart__axis__arrow__)")
+  .attr("stroke-width", marginTop / 2)
+  .attr("x1", 0)
+  .attr("y1", marginTop / 2)
+  .attr("x2", chartWidth)
+  .attr("y2", marginTop / 2);
+
+// draw the text label for the horizontal axis
+horizontalGroup.append("text")
+  .attr("class", "mx-bubblecomparechart__axis__text")
+  .attr("text-anchor", "middle")
+  .attr("x", chartWidth/2)
+  .attr("y", 25)
+  .text(horizontalAxisLabelText);
+
+// create a group to hold all of the vertical axis items
+var verticalGroup = svg.append("g")
+  .attr("transform", "translate(" + (width - marginRight) + "," + marginTop + ")");
+
+verticalGroup.append("line")
+  .attr("class", "mx-bubblecomparechart__axis")
+  .attr("marker-end", "url(#__mx-bubblecomparechart__axis__arrow__)")
+  .attr("stroke-width", marginTop / 2)
+  .attr("x1", marginRight/2)
+  .attr("y1", chartHeight)
+  .attr("x2", marginRight/2)
+  .attr("y2", 0);
+
+verticalGroup.append("text")
+  .attr("class", "mx-bubblecomparechart__axis__text")
+  .attr("text-anchor", "middle")
+  .attr("x", -chartHeight/2)
+  .attr("y", marginRight - 15)
+  .attr("transform", function(d) {
+    return "rotate(-90)" 
+  })
+  .text(verticalAxisLabelText);
+
+// create the scale for the placing items along the x axis
+var xScale = d3.scale.linear().range([0, chartWidth]).domain([xAxis_MinValue, xAxis_MaxValue]);
+
+// create the scale for the placing items along the y axis
+var yScale = d3.scale.linear().range([chartHeight, 0]).domain([yAxis_MinValue, yAxis_MaxValue]);
+
+var valueExtent = d3.extent(vendors, function(d) {
+  return d[valuePropetyName];
+});
+
+// create the scale to use to set the radius of the bubbles
+var rScale = d3.scale.sqrt().range([3, chartWidth*0.08])
+    .domain(valueExtent);
+
+// create a group that will hold the bubbles and insert it so that the 
+// axis are on top
+var bubbles = svg.insert("g", ":first-child")
+  .attr("transform", "translate(" + marginLeft + "," + marginTop + ")").selectAll(".mx-bubblecomparechart__bubble")
+    .data(vendors, function(d) { return d.id; });
+
+  bubbles.enter()
+  .append('circle')
+  .attr('class', 'mx-bubblecomparechart__bubble')
+  .attr('r', function(d,i) {return rScale(d.value);})
+  .attr('cx', function(d,i) {return xScale(d.timeliness);})
+  .attr('cy', function(d,i) {return yScale(d.accuracy);});
+/*
+ bubbles.transition()
+  .attr('class', 'bubble')
+  .attr('r', 3)
+  .attr('cx', function(d,i) {return xScale(d.timeliness);})
+  .attr('cy', function(d,i) {return yScale(d.accuracy);});
+*/
+
+d3.select("#upateData1").on('click', 
+  function(){
+vendors = [
+  {
+    id: 1,
+    name: "ATT",
+    timeliness: 70,
+    accuracy: 20,
+    lineItemCount: 100,
+    value: 22000
+  },
+  {
+    id: 2,
+    name: "Granite",
+    timeliness: 15,
+    accuracy: 30,
+    lineItemCount: 100,
+    value: 1000
+  },
+  {
+    id: 3,
+    name: "Verizon",
+    timeliness: 60,
+    accuracy: 30,
+    lineItemCount: 100,
+    value: 18000
+  },
+  {
+    id: 4,
+    name: "Bell Canada",
+    timeliness: 80,
+    accuracy: 95,
+    lineItemCount: 100,
+    value: 500
+  },
+  {
+    id: 5,
+    name: "T-Mobile",
+    timeliness: 90,
+    accuracy: 75,
+    lineItemCount: 100,
+    value: 12000
+  },
+  {
+    id: 6,
+    name: "Sprint",
+    timeliness: 25,
+    accuracy: 65,
+    lineItemCount: 100,
+    value: 15000
+  },
+  {
+    id: 7,
+    name: "Orange",
+    timeliness: 50,
+    accuracy: 8,
+    lineItemCount: 100,
+    value: 3000
+  },
+  {
+    id: 8,
+    name: "Vodaphone",
+    timeliness: 15,
+    accuracy: 15,
+    lineItemCount: 100,
+    value: 7000
+  },
+  {
+    id: 9,
+    name: "Rogers",
+    timeliness: 90,
+    accuracy: 45,
+    lineItemCount: 100,
+    value: 5000
+  },
+  {
+    id: 10,
+    name: "SW Bell",
+    timeliness: 30,
+    accuracy: 20,
+    lineItemCount: 100,
+    value: 400
+  }
+];
+
+valueExtent = d3.extent(vendors, function(d) {
+  return d.value;
+});
+
+rScale = d3.scale.sqrt().range([3, chartWidth*0.08])
+    .domain(valueExtent);
+
+bubbles
+ .data(vendors)
+ .transition()
+ .duration(1500)
+  .attr('class', 'bubble')
+  .attr('r', function(d,i) {return rScale(d.value);})
+  .attr('cx', function(d,i) {return xScale(d.timeliness);})
+  .attr('cy', function(d,i) {return yScale(d.accuracy);});
+});
+
+d3.select("#upateData2").on('click', 
+  function(){
+vendors = [
+  {
+    id: 1,
+    name: "ATT",
+    timeliness: 50,
+    accuracy: 90,
+    lineItemCount: 100,
+    value: 100
+  },
+  {
+    id: 2,
+    name: "Granite",
+    timeliness: 55,
+    accuracy: 20,
+    lineItemCount: 100,
+    value: 20000
+  },
+  {
+    id: 3,
+    name: "Verizon",
+    timeliness: 100,
+    accuracy: 100,
+    lineItemCount: 100,
+    value: 20000
+  },
+  {
+    id: 4,
+    name: "Bell Canada",
+    timeliness: 50,
+    accuracy: 55,
+    lineItemCount: 100,
+    value: 10000
+  },
+  {
+    id: 5,
+    name: "T-Mobile",
+    timeliness: 0,
+    accuracy: 85,
+    lineItemCount: 100,
+    value: 9000
+  },
+  {
+    id: 6,
+    name: "Sprint",
+    timeliness: 35,
+    accuracy: 0,
+    lineItemCount: 100,
+    value: 10000
+  },
+  {
+    id: 7,
+    name: "Orange",
+    timeliness: 90,
+    accuracy: 80,
+    lineItemCount: 100,
+    value: 2000
+  },
+  {
+    id: 8,
+    name: "Vodaphone",
+    timeliness: 0,
+    accuracy: 0,
+    lineItemCount: 100,
+    value: 5000
+  },
+  {
+    id: 9,
+    name: "Rogers",
+    timeliness: 100,
+    accuracy: 75,
+    lineItemCount: 100,
+    value: 8000
+  },
+  {
+    id: 10,
+    name: "SW Bell",
+    timeliness: 50,
+    accuracy: 100,
+    lineItemCount: 100,
+    value: 200
+  }
+];
+
+valueExtent = d3.extent(vendors, function(d) {
+  return d.value;
+});
+
+rScale = d3.scale.sqrt().range([3, chartWidth*0.08])
+    .domain(valueExtent);
+
+ bubbles
+ .data(vendors)
+ .transition()
+ .duration(1500)
+  .attr('class', 'bubble')
+  .attr('r', function(d,i) {return rScale(d.value);})
+  .attr('cx', function(d,i) {return xScale(d.timeliness);})
+  .attr('cy', function(d,i) {return yScale(d.accuracy);});
+
+//bubbles.datum(vendors);
+  });
+
+d3.select("#upateData3").on('click', 
+  function(){
+
+  });
+</script>
+</body>
+</html>
+
