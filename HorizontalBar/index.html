@@ -146,7 +146,9 @@ function getMaxValue(array, valueProperty) {
   })[valueProperty];
 }
 
-var barHeight = 20;
+var animationDuration = 1000;
+
+var barHeight = 24;
 
 var labelWidth = 100;
 
@@ -161,16 +163,28 @@ var scaleX = d3.scale.linear()
  
 var scaleY = d3.scale.ordinal()
     .domain(d3.range(vendors.length))
-    .rangeRoundBands([0, height], 0.05);
+    .rangeRoundBands([0, height], 0.2);
 
 chart = d3.select($("#hb")[0])
     .append('svg')
     .attr('class', 'chart')
-    .attr('width', width)
+    .attr('width', width + 5)
     .attr('height', height);
  
 
 function barGraph(data) {
+
+
+var newHeight = barHeight * vendors.length;
+//if(newHeight > height) {
+  chart.transition().duration(animationDuration).attr('height', newHeight);
+//}
+//else {
+//  chart.transition().delay(animationDuration)
+//  .duration(animationDuration).attr('height', newHeight);
+//}
+height = newHeight;
+
   var bars = chart.selectAll("rect")
      .data(data, function(d) {return d.id;});
 bars.enter().append("rect")
@@ -180,9 +194,14 @@ bars.enter().append("rect")
       })
      .attr("width", 0)
      .attr("height", scaleY.rangeBand());
+
+bars.exit().remove()
+
 bars.transition()
-  .duration( function(d,i){ return 1000})
-  .delay(function(d,i){return i * 100;})
+ //.delay(function(d, i) { return i * 100; })
+ //     .duration(200)
+      .duration(animationDuration)
+      //.ease('bounce')
   .attr("y", function(d,i){
         return scaleY(i);
       })
@@ -203,17 +222,17 @@ var scores = chart.selectAll("text.score")
   .attr("text-anchor", "end")
   .attr('class', 'score')
   .attr('opacity', 0.0001);
+
+scores.exit().remove();
   /*
   .text(function(d) {
     return d.timeliness;});
 */
-  scores.transition().duration(1000)
-  .delay(
-    function(d,i) {
-      return i * 100;
-    }
-      )
-    .attr('opacity', 1)
+  scores.transition()
+  //.delay(function(d, i) { return i * 100; })
+  //    .duration(200)
+     .duration(animationDuration)
+     .attr('opacity', 1)
      .attr("x", function(d) { return scaleX(d.timeliness) + labelWidth; })
   .attr("y", function(d,i){
         return scaleY(i) + scaleY.rangeBand()/2;
@@ -225,19 +244,30 @@ var scores = chart.selectAll("text.score")
 var labels = chart.selectAll("text.name")
   .data(vendors, function(d) {return d.id;});
 labels.enter().append("text")
+  .attr("opacity", 0.0001)
   .attr("x", labelWidth / 2)
   .attr("y", function(d, i){ return scaleY(i) + scaleY.rangeBand()/2; } )
   .attr("dy", ".36em")
   .attr("text-anchor", "middle")
   .attr('class', 'name')
-  .text(function(d,i){return d.name;});
+ // .text(function(d,i){return (i + 1) + ". " +d.name;});
+ .text(function(d,i){return  d.name;});
 
-labels.transition().duration(1000).delay(function(d,i){return i * 100;})
+ labels.exit().remove();
+
+labels.transition()
+ //.delay(function(d, i) { return i * 100; })
+      //.duration(200)
+     .duration(animationDuration)
+   .attr("opacity", 1)
   .attr("x", labelWidth / 2)
   .attr("y", function(d, i){ return scaleY(i) + scaleY.rangeBand()/2; } )
   .attr("dy", ".36em")
-  .attr("text-anchor", "middle");
- 
+  .attr("text-anchor", "middle")
+    //.text(function(d,i){return (i + 1) + ". " +d.name;});
+  .text(function(d,i){return  d.name;});
+
+
 }
 
 
@@ -263,14 +293,6 @@ vendors = [
     value: 1000
   },
   {
-    id: 3,
-    name: "Verizon",
-    timeliness: 60,
-    accuracy: 30,
-    lineItemCount: 100,
-    value: 18000
-  },
-  {
     id: 4,
     name: "Bell Canada",
     timeliness: 80,
@@ -285,14 +307,6 @@ vendors = [
     accuracy: 75,
     lineItemCount: 100,
     value: 12000
-  },
-  {
-    id: 6,
-    name: "Sprint",
-    timeliness: 25,
-    accuracy: 65,
-    lineItemCount: 100,
-    value: 15000
   },
   {
     id: 7,
@@ -323,6 +337,14 @@ vendors = [
     name: "SW Bell",
     timeliness: 30,
     accuracy: 20,
+    lineItemCount: 100,
+    value: 400
+  },
+  {
+    id: 11,
+    name: "Extra",
+    timeliness: 65,
+    accuracy: 77,
     lineItemCount: 100,
     value: 400
   }
