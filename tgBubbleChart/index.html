@@ -170,7 +170,6 @@ var bands = [];
 var numberOfBands = 4;
 var innerRadius = 0;
 var outerRadius = 0;
-var fillColor = d3.rgb("#0000ff");
 for(var i = 0; i < numberOfBands; i++){
   innerRadius = outerRadius;
   outerRadius = (i === 0 ? (2/(numberOfBands+1))*chartWidth: (1/(numberOfBands+1))*chartWidth) + innerRadius;
