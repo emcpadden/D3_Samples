@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+#hb {
+  background: #fff;
+}
+
+.chart {
+  background: #b0e0f8;
+  margin: 5px;
+}
+ 
+.chart rect {
+  stroke: white;
+  fill: steelblue;
+}
+ 
+.chart text {
+  fill: white;
+}
+ 
+.chart text.name {
+  fill: #000;
+}
+ 
+.chart line {
+  stroke: #c1c1c1;
+}
+ 
+.chart .rule {
+  fill: #000;
+}
+
+</style>
+
+</head>
+<body>
+<h1>Horizontal Bar Chart Experiment</h1>
+<p>This is an experiment to help create a horizontal bar chart that will grow and shrink vertically for the data that it is displaying</p>
+<p>
+  <button id="upateData1">Update Data 1</button>
+  <button id="upateData2">Update Data 2</button>
+</p>
+<div style="background: #eee; margin:20px; padding: 50px;">
+  <div id="hb" style="width: 100%; height:auto;"></div>
+</div>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
+<script>
+
+var vendors = [
+  {
+    id: 1,
+    name: "ATT",
+    timeliness: 70,
+    accuracy: 20,
+    lineItemCount: 100,
+    value: 22000
+  },
+  {
+    id: 2,
+    name: "Granite",
+    timeliness: 15,
+    accuracy: 30,
+    lineItemCount: 100,
+    value: 1000
+  },
+  {
+    id: 3,
+    name: "Verizon",
+    timeliness: 60,
+    accuracy: 30,
+    lineItemCount: 100,
+    value: 18000
+  },
+  {
+    id: 4,
+    name: "Bell Canada",
+    timeliness: 80,
+    accuracy: 95,
+    lineItemCount: 100,
+    value: 500
+  },
+  {
+    id: 5,
+    name: "T-Mobile",
+    timeliness: 90,
+    accuracy: 75,
+    lineItemCount: 100,
+    value: 12000
+  },
+  {
+    id: 6,
+    name: "Sprint",
+    timeliness: 25,
+    accuracy: 65,
+    lineItemCount: 100,
+    value: 15000
+  },
+  {
+    id: 7,
+    name: "Orange",
+    timeliness: 50,
+    accuracy: 8,
+    lineItemCount: 100,
+    value: 3000
+  },
+  {
+    id: 8,
+    name: "Vodaphone",
+    timeliness: 15,
+    accuracy: 15,
+    lineItemCount: 100,
+    value: 7000
+  },
+  {
+    id: 9,
+    name: "Rogers",
+    timeliness: 90,
+    accuracy: 45,
+    lineItemCount: 100,
+    value: 5000
+  },
+  {
+    id: 10,
+    name: "SW Bell",
+    timeliness: 30,
+    accuracy: 20,
+    lineItemCount: 100,
+    value: 400
+  }
+];
+
+function getMaxValue(array, valueProperty) {
+  return _.max(array, function(item) {
+    return item[valueProperty];
+  })[valueProperty];
+}
+
+var animationDuration = 1000;
+
+var barHeight = 24;
+
+var labelWidth = 100;
+
+var width = $('#hb').width();
+var height = barHeight * vendors.length;
+
+var maxValue = getMaxValue(vendors, "timeliness");
+
+var scaleX = d3.scale.linear()
+     .domain([0, /*maxValue*/100])
+     .range([0, width - labelWidth]);
+ 
+var scaleY = d3.scale.ordinal()
+    .domain(d3.range(vendors.length))
+    .rangeRoundBands([0, height], 0.2);
+
+chart = d3.select($("#hb")[0])
+    .append('svg')
+    .attr('class', 'chart')
+    .attr('width', width + 5)
+    .attr('height', height);
+ 
+
+function barGraph(data) {
+
+
+var newHeight = barHeight * vendors.length;
+//if(newHeight > height) {
+  chart.transition().duration(animationDuration).attr('height', newHeight);
+//}
+//else {
+//  chart.transition().delay(animationDuration)
+//  .duration(animationDuration).attr('height', newHeight);
+//}
+height = newHeight;
+
+  var bars = chart.selectAll("rect")
+     .data(data, function(d) {return d.id;});
+bars.enter().append("rect")
+     .attr("x", labelWidth)
+     .attr("y", function(d,i){
+        return scaleY(i);
+      })
+     .attr("width", 0)
+     .attr("height", scaleY.rangeBand());
+
+bars.exit().remove()
+
+bars.transition()
+ //.delay(function(d, i) { return i * 100; })
+ //     .duration(200)
+      .duration(animationDuration)
+      //.ease('bounce')
+  .attr("y", function(d,i){
+        return scaleY(i);
+      })
+     .attr("width", function(d) { 
+        return scaleX(d.timeliness);
+      });
+
+var scores = chart.selectAll("text.score")
+  .data(vendors, function(d) {return d.id;});
+
+  scores.enter().append("text")
+  .attr("x", labelWidth)
+  .attr("y", function(d,i){
+        return scaleY(i) + scaleY.rangeBand()/2;
+      }   )
+  .attr("dx", -5)
+  .attr("dy", ".36em")
+  .attr("text-anchor", "end")
+  .attr('class', 'score')
+  .attr('opacity', 0.0001);
+
+scores.exit().remove();
+  /*
+  .text(function(d) {
+    return d.timeliness;});
+*/
+  scores.transition()
+  //.delay(function(d, i) { return i * 100; })
+  //    .duration(200)
+     .duration(animationDuration)
+     .attr('opacity', 1)
+     .attr("x", function(d) { return scaleX(d.timeliness) + labelWidth; })
+  .attr("y", function(d,i){
+        return scaleY(i) + scaleY.rangeBand()/2;
+      }   )
+  .attr("dx", -5)
+  .attr("dy", ".36em").text(function(d) {
+    return d.timeliness;});
+
+var labels = chart.selectAll("text.name")
+  .data(vendors, function(d) {return d.id;});
+labels.enter().append("text")
+  .attr("opacity", 0.0001)
+  .attr("x", labelWidth / 2)
+  .attr("y", function(d, i){ return scaleY(i) + scaleY.rangeBand()/2; } )
+  .attr("dy", ".36em")
+  .attr("text-anchor", "middle")
+  .attr('class', 'name')
+ // .text(function(d,i){return (i + 1) + ". " +d.name;});
+ .text(function(d,i){return  d.name;});
+
+ labels.exit().remove();
+
+labels.transition()
+ //.delay(function(d, i) { return i * 100; })
+      //.duration(200)
+     .duration(animationDuration)
+   .attr("opacity", 1)
+  .attr("x", labelWidth / 2)
+  .attr("y", function(d, i){ return scaleY(i) + scaleY.rangeBand()/2; } )
+  .attr("dy", ".36em")
+  .attr("text-anchor", "middle")
+    //.text(function(d,i){return (i + 1) + ". " +d.name;});
+  .text(function(d,i){return  d.name;});
+
+
+}
+
+
+barGraph(vendors);
+
+d3.select("#upateData1").on('click', 
+  function(){
+vendors = [
+  {
+    id: 1,
+    name: "ATT",
+    timeliness: 70,
+    accuracy: 20,
+    lineItemCount: 100,
+    value: 22000
+  },
+  {
+    id: 2,
+    name: "Granite",
+    timeliness: 15,
+    accuracy: 30,
+    lineItemCount: 100,
+    value: 1000
+  },
+  {
+    id: 4,
+    name: "Bell Canada",
+    timeliness: 80,
+    accuracy: 95,
+    lineItemCount: 100,
+    value: 500
+  },
+  {
+    id: 5,
+    name: "T-Mobile",
+    timeliness: 90,
+    accuracy: 75,
+    lineItemCount: 100,
+    value: 12000
+  },
+  {
+    id: 7,
+    name: "Orange",
+    timeliness: 50,
+    accuracy: 8,
+    lineItemCount: 100,
+    value: 3000
+  },
+  {
+    id: 8,
+    name: "Vodaphone",
+    timeliness: 15,
+    accuracy: 15,
+    lineItemCount: 100,
+    value: 7000
+  },
+  {
+    id: 9,
+    name: "Rogers",
+    timeliness: 90,
+    accuracy: 45,
+    lineItemCount: 100,
+    value: 5000
+  },
+  {
+    id: 10,
+    name: "SW Bell",
+    timeliness: 30,
+    accuracy: 20,
+    lineItemCount: 100,
+    value: 400
+  },
+  {
+    id: 11,
+    name: "Extra",
+    timeliness: 65,
+    accuracy: 77,
+    lineItemCount: 100,
+    value: 400
+  }
+];
+
+barGraph(vendors);
+
+});
+
+d3.select("#upateData2").on('click', 
+  function(){
+vendors = [
+  {
+    id: 2,
+    name: "Granite",
+    timeliness: 55,
+    accuracy: 20,
+    lineItemCount: 100,
+    value: 20000
+  },
+  {
+    id: 6,
+    name: "Sprint",
+    timeliness: 35,
+    accuracy: 0,
+    lineItemCount: 100,
+    value: 10000
+  },
+  {
+    id: 3,
+    name: "Verizon",
+    timeliness: 100,
+    accuracy: 100,
+    lineItemCount: 100,
+    value: 20000
+  },
+  {
+    id: 1,
+    name: "ATT",
+    timeliness: 50,
+    accuracy: 90,
+    lineItemCount: 100,
+    value: 100
+  },
+  {
+    id: 4,
+    name: "Bell Canada",
+    timeliness: 50,
+    accuracy: 55,
+    lineItemCount: 100,
+    value: 10000
+  },
+  {
+    id: 7,
+    name: "Orange",
+    timeliness: 90,
+    accuracy: 80,
+    lineItemCount: 100,
+    value: 2000
+  },
+  {
+    id: 5,
+    name: "T-Mobile",
+    timeliness: 10,
+    accuracy: 85,
+    lineItemCount: 100,
+    value: 9000
+  },
+  {
+    id: 10,
+    name: "SW Bell",
+    timeliness: 50,
+    accuracy: 100,
+    lineItemCount: 100,
+    value: 200
+  },
+  {
+    id: 8,
+    name: "Vodaphone",
+    timeliness: 29,
+    accuracy: 0,
+    lineItemCount: 100,
+    value: 5000
+  },
+  {
+    id: 9,
+    name: "Rogers",
+    timeliness: 100,
+    accuracy: 75,
+    lineItemCount: 100,
+    value: 8000
+  }
+];
+
+barGraph(vendors);
+  });
+
+</script>
+</body>
+</html>
+
