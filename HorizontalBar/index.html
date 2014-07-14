@@ -13,29 +13,29 @@ body {
   background: #fff;
 }
 
-.chart {
+.tg-horizontalbarchart {
   background: #b0e0f8;
   margin: 5px;
 }
- 
-.chart rect {
+
+.tg-horizontalbarchart__bar {
   stroke: white;
   fill: steelblue;
 }
  
-.chart text {
+.tg-horizontalbarchart__bar__value {
   fill: white;
 }
  
-.chart text.name {
+.tg-horizontalbarchart__label {
   fill: #000;
 }
  
-.chart line {
+.tg-horizontalbarchart line {
   stroke: #c1c1c1;
 }
  
-.chart .rule {
+.tg-horizontalbarchart__rule {
   fill: #000;
 }
 
@@ -167,7 +167,7 @@ var scaleY = d3.scale.ordinal()
 
 chart = d3.select($("#hb")[0])
     .append('svg')
-    .attr('class', 'chart')
+    .attr('class', 'tg-horizontalbarchart')
     .attr('width', width + 5)
     .attr('height', height);
  
@@ -175,19 +175,13 @@ chart = d3.select($("#hb")[0])
 function barGraph(data) {
 
 
-var newHeight = barHeight * vendors.length;
-//if(newHeight > height) {
-  chart.transition().duration(animationDuration).attr('height', newHeight);
-//}
-//else {
-//  chart.transition().delay(animationDuration)
-//  .duration(animationDuration).attr('height', newHeight);
-//}
-height = newHeight;
+height = barHeight * vendors.length;
+chart.transition().duration(animationDuration).attr('height', height);
 
-  var bars = chart.selectAll("rect")
+  var bars = chart.selectAll(".tg-horizontalbarchart__bar")
      .data(data, function(d) {return d.id;});
-bars.enter().append("rect")
+      bars.enter().append("rect")
+      .attr("class", "tg-horizontalbarchart__bar")
      .attr("x", labelWidth)
      .attr("y", function(d,i){
         return scaleY(i);
@@ -195,7 +189,9 @@ bars.enter().append("rect")
      .attr("width", 0)
      .attr("height", scaleY.rangeBand());
 
-bars.exit().remove()
+//bars.exit().remove()
+bars.exit().transition().duration(animationDuration).style("opacity", 1e-6).remove(); // simply
+
 
 bars.transition()
  //.delay(function(d, i) { return i * 100; })
@@ -209,7 +205,7 @@ bars.transition()
         return scaleX(d.timeliness);
       });
 
-var scores = chart.selectAll("text.score")
+var scores = chart.selectAll("text.tg-horizontalbarchart__bar__value")
   .data(vendors, function(d) {return d.id;});
 
   scores.enter().append("text")
@@ -220,10 +216,11 @@ var scores = chart.selectAll("text.score")
   .attr("dx", -5)
   .attr("dy", ".36em")
   .attr("text-anchor", "end")
-  .attr('class', 'score')
+  .attr('class', 'tg-horizontalbarchart__bar__value')
   .attr('opacity', 0.0001);
 
-scores.exit().remove();
+//scores.exit().remove();
+scores.exit().transition().duration(animationDuration).style("opacity", 1e-6).remove(); // 
   /*
   .text(function(d) {
     return d.timeliness;});
@@ -241,7 +238,7 @@ scores.exit().remove();
   .attr("dy", ".36em").text(function(d) {
     return d.timeliness;});
 
-var labels = chart.selectAll("text.name")
+var labels = chart.selectAll("text.tg-horizontalbarchart__label")
   .data(vendors, function(d) {return d.id;});
 labels.enter().append("text")
   .attr("opacity", 0.0001)
@@ -249,11 +246,12 @@ labels.enter().append("text")
   .attr("y", function(d, i){ return scaleY(i) + scaleY.rangeBand()/2; } )
   .attr("dy", ".36em")
   .attr("text-anchor", "middle")
-  .attr('class', 'name')
+  .attr('class', 'tg-horizontalbarchart__label')
  // .text(function(d,i){return (i + 1) + ". " +d.name;});
  .text(function(d,i){return  d.name;});
 
- labels.exit().remove();
+// labels.exit().remove();
+labels.exit().transition().duration(animationDuration).style("opacity", 1e-6).remove(); //
 
 labels.transition()
  //.delay(function(d, i) { return i * 100; })
