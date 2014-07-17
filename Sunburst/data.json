@@ -9,170 +9,20 @@
                 {
                     "id": "voice",
                     "title": "Voice",
-                    "children": [
-                        {
-                            "id": "line",
-                            "title": "Line",
-                            "spend": 45852,
-                            "count": 1650
-                        },
-                        {
-                            "id": "tollFree",
-                            "title": "Toll Free",
-                            "spend": 93125,
-                            "count": 2125
-                        },
-                        {
-                            "id": "sipTrunk",
-                            "title": "SIP Trunk",
-                            "spend": 12665,
-                            "count": 875
-                        },
-                        {
-                            "id": "trunk",
-                            "title": "Trunk",
-                            "spend": 27199,
-                            "count": 1211
-                        },
-                        {
-                            "id": "centrex",
-                            "title": "Centrex",
-                            "spend": 17515,
-                            "count": 981
-                        },
-                        {
-                            "id": "did",
-                            "title": "DID",
-                            "spend": 21738,
-                            "count": 1502
-                        },
-                        {
-                            "id": "localAccess",
-                            "title": "Local Access",
-                            "spend": 36939,
-                            "count": 3765
-                        },
-                        {
-                            "id": "callingCard",
-                            "title": "Calling Card",
-                            "spend": 19831,
-                            "count": 4819
-                        },
-                        {
-                            "id": "conferencing",
-                            "title": "Conferencing",
-                            "spend": 41852,
-                            "count": 3969
-                        }
-                    ]
+                    "spend": 316716,
+                    "count": 20897
                 },
                 {
                     "id": "data",
                     "title": "Data",
-                    "children": [
-                        {
-                            "id": "port",
-                            "title": "Port",
-                            "spend": 31205,
-                            "count": 2686
-                        },
-                        {
-                            "id": "pvc",
-                            "title": "PVC",
-                            "spend": 29631,
-                            "count": 2399
-                        }
-                    ]
+                    "spend": 60836,
+                    "count": 5085
                 },
                 {
                     "id": "circuits",
                     "title": "Circuits",
-                    "children": [
-                        {
-                            "id": "oc192",
-                            "title": "OC192",
-                            "spend": 30916,
-                            "count": 266
-                        },
-                        {
-                            "id": "oc48",
-                            "title": "OC48",
-                            "spend": 28741,
-                            "count": 299
-                        },
-                        {
-                            "id": "oc12",
-                            "title": "OC12",
-                            "spend": 24936,
-                            "count": 248
-                        },
-                        {
-                            "id": "oc3",
-                            "title": "OC3",
-                            "spend": 23631,
-                            "count": 139
-                        },
-                        {
-                            "id": "ds3",
-                            "title": "DS3",
-                            "spend": 3205,
-                            "count": 2641
-                        },
-                        {
-                            "id": "t1",
-                            "title": "T1",
-                            "spend": 4885,
-                            "count": 219
-                        },
-                        {
-                            "id": "e1",
-                            "title": "E1",
-                            "spend": 2984,
-                            "count": 186
-                        },
-                        {
-                            "id": "e2",
-                            "title": "E2",
-                            "spend": 1631,
-                            "count": 139
-                        },
-                        {
-                            "id": "e3",
-                            "title": "E3",
-                            "spend": 3205,
-                            "count": 177
-                        },
-                        {
-                            "id": "j1",
-                            "title": "J1",
-                            "spend": 2963,
-                            "count": 211
-                        },
-                        {
-                            "id": "gige",
-                            "title": "gigE",
-                            "spend": 1195,
-                            "count": 146
-                        },
-                        {
-                            "id": "isdnpri",
-                            "title": "ISDN PRI",
-                            "spend": 1685,
-                            "count": 127
-                        },
-                        {
-                            "id": "isdnbri",
-                            "title": "ISDN BRI",
-                            "spend": 1928,
-                            "count": 141
-                        },
-                        {
-                            "id": "cable",
-                            "title": "Cable",
-                            "spend": 17811,
-                            "count": 899
-                        }
-                    ]
+                    "spend": 135059,
+                    "count": 3838
                 }
             ]
         },
@@ -183,26 +33,8 @@
                 {
                     "id": "wirelessDevice",
                     "title": "Wireless Device",
-                    "children": [
-                        {
-                            "id": "smartphone",
-                            "title": "Smartphone",
-                            "spend": 121658,
-                            "count": 1284
-                        },
-                        {
-                            "id": "cellphone",
-                            "title": "Cellphone",
-                            "spend": 28754,
-                            "count": 612
-                        },
-                        {
-                            "id": "tablet",
-                            "title": "Tablet",
-                            "spend": 42158,
-                            "count": 698
-                        }
-                    ]
+                    "spend": 192570,
+                    "count": 2594
                 },
                 {
                     "id": "wirelessService",
