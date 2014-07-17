@@ -9,22 +9,26 @@
         {
           "id": "fleet",
           "title": "Fleet",
-          "size": 1000
+          "spend": 1000,
+          "count": 10
         },
         {
           "id": "vending",
           "title": "Vending",
-          "size": 1000
+          "spend": 1000,
+          "count": 10
         },
         {
           "id": "meters",
           "title": "Meters",
-          "size": 1000
+          "spend": 1000,
+          "count": 10
         },
         {
           "id": "trafficlights",
           "title": "Traffic Lights",
-          "size": 1000
+          "spend": 1000,
+          "count": 10
         }
       ]
     },
@@ -39,17 +43,20 @@
             {
               "id": "iosV5",
               "title": "iOS Version 5",
-              "size": 1000
+              "spend": 1000,
+              "count": 10
             },
             {
               "id": "iosV6",
               "title": "iOS Version 6",
-              "size": 1000
+              "spend": 1000,
+              "count": 10
             },
             {
               "id": "iosV7",
               "title": "iOS Version 7",
-              "size": 1000
+              "spend": 1000,
+              "count": 10
             }
           ]
         },
@@ -60,17 +67,20 @@
             {
               "id": "androidV1",
               "title": "Android V1",
-              "size": 1000
+              "spend": 1000,
+              "count": 10
             },
             {
               "id": "androidV2",
               "title": "Android V2",
-              "size": 1000
+              "spend": 1000,
+              "count": 10
             },
             {
               "id": "androidV3",
               "title": "Android V3",
-              "size": 1000
+              "spend": 1000,
+              "count": 10
             }
           ]
         },
@@ -81,17 +91,20 @@
             {
               "id": "blackberryV1",
               "title": "Blackberry V1",
-              "size": 1000
+              "spend": 1000,
+              "count": 10
             },
             {
               "id": "blackberryV2",
               "title": "Blackberry V2",
-              "size": 1000
+              "spend": 1000,
+              "count": 10
             },
             {
               "id": "blackberryV3",
               "title": "Blackberry V3",
-              "size": 1000
+              "spend": 1000,
+              "count": 10
             }
           ]
         },
@@ -102,12 +115,14 @@
             {
               "id": "windowsV7",
               "title": "Windows V7",
-              "size": 1000
+              "spend": 1000,
+              "count": 10
             },
             {
               "id": "windowsV8",
               "title": "Windows V8",
-              "size": 1000
+              "spend": 1000,
+              "count": 10
             }
           ]
         }
@@ -120,34 +135,40 @@
         {
           "id": "iaas",
           "title": "IAAS",
-          "size": 1000
+          "spend": 1000,
+          "count": 10
         },
         {
           "id": "paas",
           "title": "PAAS",
-          "size": 1000
+          "spend": 1000,
+          "count": 10
         },
         {
           "id": "sass",
           "title": "SAAS",
-          "size": 1000
+          "spend": 1000,
+          "count": 10
         }
       ]
     },
     {
       "id": "it",
       "title": "IT",
-      "size": 1000
+      "spend": 1000,
+      "count": 10
     },
     {
       "id": "utilities",
       "title": "Utilities",
-      "size": 1000
+      "spend": 1000,
+      "count": 10
     },
     {
       "id": "machine",
       "title": "Machine",
-      "size": 1000
+      "spend": 1000,
+      "count": 10
     }
   ]
 }

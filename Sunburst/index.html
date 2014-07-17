@@ -2,17 +2,37 @@
 <meta charset="utf-8">
 <style>
 
-path {
+.mx-sunburstchart {
+
+}
+
+.mx-sunburstchart text {
+  pointer-events: none;
+}
+
+.mx-sunburstchart__slice {
   cursor: pointer;
   stroke: #fff;
 }
 
-svg text {
-  pointer-events: none;
+.mx-sunburstchart__slice__tooltip {
+
 }
 
-text {
-  font: 11px sans-serif;
+.mx-sunburstchart__back {
+  font-family: sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+.mx-sunburstchart__info {
+  font-family: sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+.mx-sunburstchart__slice__label {
+  /*font: 10px sans-serif;*/
+
+  font-family: sans-serif;
   cursor: pointer;
   text-rendering: optimizeLegibility;
 }
@@ -23,18 +43,14 @@ text {
 <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
 <script>
 
-var donutHoleRadius = 100;
-
 var width = 960,
-    height = 700,
+    height = 550,
     padding = 5,
+    currentDepth = 0,
     radius = Math.min(width, height) / 2;
 
 var x = d3.scale.linear()
     .range([0, 2 * Math.PI]);
-
-//var y = d3.scale.sqrt()
-//    .range([0, radius]);
 
 var y = d3.scale.linear()
     .range([0, radius]);
@@ -42,13 +58,14 @@ var y = d3.scale.linear()
 var color = d3.scale.category20c();
 
 var svg = d3.select("body").append("svg")
+    .attr('class', 'mx-sunburstchart')
     .attr("width", width)
     .attr("height", height + 10)
   .append("g")
     .attr("transform", "translate(" + width / 2 + "," + (height / 2 + 10) + ")");
 
 var partition = d3.layout.partition()
-    .value(function(d) { return d.size; });
+    .value(function(d) { return d.spend; });
 
 var arc = d3.svg.arc()
     .startAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x))); })
@@ -59,29 +76,38 @@ var arc = d3.svg.arc()
 d3.json("data.json", function(error, root) {
 
   var data = partition.nodes(root);
-  //var data = partition.nodes({children: root.children});
 
-  var path = svg.selectAll("path")
+  var path = svg.selectAll(".mx-sunburstchart__slice")
       .data(data)
     .enter().append("path")
+      .attr('class', 'mx-sunburstchart__slice')
+      .attr('data-id', function(d){return d.id;})
       .attr("d", arc)
       .style("fill", function(d) { return color((d.children ? d : d.parent).id); });
 
+  // lets get the diameter of the inner circle
+  var topLevelDiameter = ((d3.select("path[data-id='" + root.id + "']")[0])[0]).getBoundingClientRect().height;
+
+  // figure out font size for the labels
+  var labelFontSize = Math.round(topLevelDiameter/12);
+
   path.append("title")
+        .attr('class', 'mx-sunburstchart__slice__tooltip')
         .text(function(d){return d.title;});      
   path.on("click", click);
 
-
-var text = svg.selectAll("text").data(data);
+var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
   var textEnter = text.enter().append("text")
+      .attr('class', 'mx-sunburstchart__slice__label')
       .style("fill-opacity", 1)
+      .style("font-size", labelFontSize)
       .style("fill", function(d) {
         return brightness(d3.rgb(color((d.children ? d : d.parent).id))) < 125 ? "#eee" : "#000";
       })
       .attr("text-anchor", function(d) {
         return x(d.x + d.dx / 2) > Math.PI ? "end" : "start";
       })
-      .attr("dy", ".2em")
+      .attr("dy", "3")
       .attr("transform", function(d) {
         var multiline = (d.title || "").split(" ").length > 1,
             angle = x(d.x + d.dx / 2) * 180 / Math.PI - 90,
@@ -95,8 +121,68 @@ var text = svg.selectAll("text").data(data);
       .text(function(d) { return d.depth ? d.title.split(" ")[0] : ""; });
   textEnter.append("tspan")
       .attr("x", 0)
-      .attr("dy", "1em")
+      .attr("dy", labelFontSize)
       .text(function(d) { return d.depth ? d.title.split(" ")[1] || "" : ""; });
+  textEnter.append("tspan")
+      .attr("x", 0)
+      .attr("dy", labelFontSize)
+      .text(function(d) { return d.depth ? d.title.split(" ")[2] || "" : ""; });
+  textEnter.append("tspan")
+      .attr("x", 0)
+      .attr("dy", labelFontSize)
+      .text(function(d) { return d.depth ? d.title.split(" ")[3] || "" : ""; });
+
+  // add title text to the center of the chart
+
+  // lets get the diameter of the inner circle
+//  var topLevelDiameter = ((d3.select("path[data-id='" + root.id + "']")[0])[0]).getBoundingClientRect().height;
+
+  var infoBlock = svg.append("g")
+      .attr('class', 'mx-sunburstchart__info')
+      .attr('opacity', 1);
+
+  infoBlock.append('text')
+          .attr('class', 'mx-sunburstchart__info__itemcount')
+          .style("fill", function(d) {
+            return brightness(d3.rgb(color(root.id))) < 125 ? "#eee" : "#000";
+          })
+          .attr('font-size', topLevelDiameter/2.5)
+          .attr('dy', topLevelDiameter/18)
+          .style("text-anchor", "middle")
+          .text("10K");
+
+  infoBlock.append('text')
+          .attr('class', 'mx-sunburstchart__info__itemtype')
+          .style("fill", function(d) {
+            return brightness(d3.rgb(color(root.id))) < 125 ? "#eee" : "#000";
+          })
+          .attr('font-size', topLevelDiameter/8)
+          .attr('dy', topLevelDiameter/5)
+          .style("text-anchor", "middle")
+          .text("assets");
+
+  var backLabelBlock = svg.append("g")
+      .attr('class', 'mx-sunburstchart__back')
+      .attr('opacity', 1e-6);
+      /*
+          .style("fill", function(d) {
+            return brightness(d3.rgb(color(root.id))) < 125 ? "#eee" : "#000";
+          })
+*/
+  backLabelBlock.append('text')
+          .attr('class', 'mx-sunburstchart__back__to')
+          .attr('font-size', topLevelDiameter/8)
+          .attr('dy', topLevelDiameter/18)
+          .style("text-anchor", "middle")
+          .text("back to");
+
+  var backBlockName = backLabelBlock.append('text')
+          .attr('class', 'mx-sunburstchart__back__levelname')
+          .attr('font-size', topLevelDiameter/8)
+          .attr('dy', topLevelDiameter/5)
+          .style("text-anchor", "middle");
+
+    backBlockName.text("");
 
 
   function click(d) {
@@ -105,10 +191,31 @@ var text = svg.selectAll("text").data(data);
       .duration(750)
       .attrTween("d", arcTween(d));
 
+
+if(d.depth > 0) {
+  backBlockName.text(d.parent.title);
+  backLabelBlock.style("fill", brightness(d3.rgb(color(d.parent.id))) < 125 ? "#eee" : "#000");
+}
+
+
+//if(d.depth > 0 && currentDepth === 0) {
+  // we are going to a child level from the root
+  // we will need to fade out the infoBlock
+  infoBlock.transition().duration(500).attr('opacity', 1e-6);
+//}
+//if(d.depth === 0 && currentDepth > 0) {
+  // if we are going to the root from a child level, we will need to fade out the 
+  // back label
+  backLabelBlock.transition().duration(500).attr('opacity', 1e-6);
+//}
+
+
+
  // Somewhat of a hack as we rely on arcTween updating the scales.
-    text.style("visibility", function(e) {
+    text
+    .style("visibility", function(e) {
           return isParentOf(d, e) ? null : d3.select(this).style("visibility");
-        })
+      })
       .transition()
         .duration(750)
         .attrTween("text-anchor", function(d) {
@@ -128,7 +235,25 @@ var text = svg.selectAll("text").data(data);
         .each("end", function(e) {
           d3.select(this).style("visibility", isParentOf(d, e) ? null : "hidden");
         });      
+
+if(d.depth === 0) {
+
+  // we are going from a child level to the root
+  // we will need to fade in the infoBlock
+  infoBlock.transition().delay(500).duration(500).attr('opacity', 1);
+}
+if(d.depth > 0) {
+  // if we are going from the root to a child we will need to fade in the back link
+  backLabelBlock.transition().delay(500).duration(500).attr('opacity', 1);
+}
+
+
+
+  // update the currentDepth
+  currentDepth = d.depth;
+
   }
+
 });
 
 d3.select(self.frameElement).style("height", height + "px");
