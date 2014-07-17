@@ -1,174 +1,342 @@
 {
- "id": "assets",
- "title": "Assets",
- "children": [
-    {
-      "id": "fixed",
-      "title": "Fixed",
-      "children": [
+    "id": "assets",
+    "title": "Assets",
+    "children": [
         {
-          "id": "fleet",
-          "title": "Fleet",
-          "spend": 1000,
-          "count": 10
+            "id": "fixed",
+            "title": "Fixed",
+            "children": [
+                {
+                    "id": "voice",
+                    "title": "Voice",
+                    "children": [
+                        {
+                            "id": "line",
+                            "title": "Line",
+                            "spend": 45852,
+                            "count": 1650
+                        },
+                        {
+                            "id": "tollFree",
+                            "title": "Toll Free",
+                            "spend": 93125,
+                            "count": 2125
+                        },
+                        {
+                            "id": "sipTrunk",
+                            "title": "SIP Trunk",
+                            "spend": 12665,
+                            "count": 875
+                        },
+                        {
+                            "id": "trunk",
+                            "title": "Trunk",
+                            "spend": 27199,
+                            "count": 1211
+                        },
+                        {
+                            "id": "centrex",
+                            "title": "Centrex",
+                            "spend": 17515,
+                            "count": 981
+                        },
+                        {
+                            "id": "did",
+                            "title": "DID",
+                            "spend": 21738,
+                            "count": 1502
+                        },
+                        {
+                            "id": "localAccess",
+                            "title": "Local Access",
+                            "spend": 36939,
+                            "count": 3765
+                        },
+                        {
+                            "id": "callingCard",
+                            "title": "Calling Card",
+                            "spend": 19831,
+                            "count": 4819
+                        },
+                        {
+                            "id": "conferencing",
+                            "title": "Conferencing",
+                            "spend": 41852,
+                            "count": 3969
+                        }
+                    ]
+                },
+                {
+                    "id": "data",
+                    "title": "Data",
+                    "children": [
+                        {
+                            "id": "port",
+                            "title": "Port",
+                            "spend": 31205,
+                            "count": 2686
+                        },
+                        {
+                            "id": "pvc",
+                            "title": "PVC",
+                            "spend": 29631,
+                            "count": 2399
+                        }
+                    ]
+                },
+                {
+                    "id": "circuits",
+                    "title": "Circuits",
+                    "children": [
+                        {
+                            "id": "oc192",
+                            "title": "OC192",
+                            "spend": 30916,
+                            "count": 266
+                        },
+                        {
+                            "id": "oc48",
+                            "title": "OC48",
+                            "spend": 28741,
+                            "count": 299
+                        },
+                        {
+                            "id": "oc12",
+                            "title": "OC12",
+                            "spend": 24936,
+                            "count": 248
+                        },
+                        {
+                            "id": "oc3",
+                            "title": "OC3",
+                            "spend": 23631,
+                            "count": 139
+                        },
+                        {
+                            "id": "ds3",
+                            "title": "DS3",
+                            "spend": 3205,
+                            "count": 2641
+                        },
+                        {
+                            "id": "t1",
+                            "title": "T1",
+                            "spend": 4885,
+                            "count": 219
+                        },
+                        {
+                            "id": "e1",
+                            "title": "E1",
+                            "spend": 2984,
+                            "count": 186
+                        },
+                        {
+                            "id": "e2",
+                            "title": "E2",
+                            "spend": 1631,
+                            "count": 139
+                        },
+                        {
+                            "id": "e3",
+                            "title": "E3",
+                            "spend": 3205,
+                            "count": 177
+                        },
+                        {
+                            "id": "j1",
+                            "title": "J1",
+                            "spend": 2963,
+                            "count": 211
+                        },
+                        {
+                            "id": "gige",
+                            "title": "gigE",
+                            "spend": 1195,
+                            "count": 146
+                        },
+                        {
+                            "id": "isdnpri",
+                            "title": "ISDN PRI",
+                            "spend": 1685,
+                            "count": 127
+                        },
+                        {
+                            "id": "isdnbri",
+                            "title": "ISDN BRI",
+                            "spend": 1928,
+                            "count": 141
+                        },
+                        {
+                            "id": "cable",
+                            "title": "Cable",
+                            "spend": 17811,
+                            "count": 899
+                        }
+                    ]
+                }
+            ]
         },
         {
-          "id": "vending",
-          "title": "Vending",
-          "spend": 1000,
-          "count": 10
+            "id": "mobile",
+            "title": "Mobile",
+            "children": [
+                {
+                    "id": "wirelessDevice",
+                    "title": "Wireless Device",
+                    "children": [
+                        {
+                            "id": "smartphone",
+                            "title": "Smartphone",
+                            "spend": 121658,
+                            "count": 1284
+                        },
+                        {
+                            "id": "cellphone",
+                            "title": "Cellphone",
+                            "spend": 28754,
+                            "count": 612
+                        },
+                        {
+                            "id": "tablet",
+                            "title": "Tablet",
+                            "spend": 42158,
+                            "count": 698
+                        }
+                    ]
+                },
+                {
+                    "id": "wirelessService",
+                    "title": "Wireless Service",
+                    "spend": 141311,
+                    "count": 1284
+                }
+            ]
         },
         {
-          "id": "meters",
-          "title": "Meters",
-          "spend": 1000,
-          "count": 10
+            "id": "cloud",
+            "title": "Cloud",
+            "children": [
+                {
+                    "id": "iaas",
+                    "title": "IAAS",
+                    "spend": 94655,
+                    "count": 8412
+                },
+                {
+                    "id": "paas",
+                    "title": "PAAS",
+                    "spend": 37480,
+                    "count": 350
+                },
+                {
+                    "id": "sass",
+                    "title": "SAAS",
+                    "spend": 82501,
+                    "count": 7285
+                }
+            ]
         },
         {
-          "id": "trafficlights",
-          "title": "Traffic Lights",
-          "spend": 1000,
-          "count": 10
+            "id": "it",
+            "title": "IT",
+            "children": [
+                {
+                    "id": "pcs",
+                    "title": "PCs",
+                    "spend": 154015,
+                    "count": 2114
+                },
+                {
+                    "id": "servers",
+                    "title": "Servers",
+                    "spend": 274658,
+                    "count": 743
+                },
+                {
+                    "id": "networking",
+                    "title": "Networking",
+                    "spend": 77854,
+                    "count": 1285
+                },
+                {
+                    "id": "peripherals",
+                    "title": "Peripherals",
+                    "spend": 23958,
+                    "count": 2418
+                },
+                {
+                    "id": "software",
+                    "title": "Software",
+                    "spend": 49119,
+                    "count": 1471
+                },
+                {
+                    "id": "other",
+                    "title": "Other",
+                    "spend": 22501,
+                    "count": 1165
+                }
+            ]
+        },
+        {
+            "id": "utilities",
+            "title": "Utilities",
+            "children": [
+                {
+                    "id": "gas",
+                    "title": "Gas",
+                    "spend": 13655,
+                    "count": 412
+                },
+                {
+                    "id": "water",
+                    "title": "Water",
+                    "spend": 9480,
+                    "count": 350
+                },
+                {
+                    "id": "electric",
+                    "title": "Electric",
+                    "spend": 22501,
+                    "count": 458
+                }
+            ]
+        },
+        {
+            "id": "machine",
+            "title": "Machine",
+            "children": [
+                {
+                    "id": "fleet",
+                    "title": "Fleet",
+                    "spend": 154015,
+                    "count": 2114
+                },
+                {
+                    "id": "vending",
+                    "title": "Vending",
+                    "spend": 274658,
+                    "count": 743
+                },
+                {
+                    "id": "meters",
+                    "title": "Meters",
+                    "spend": 77854,
+                    "count": 1285
+                },
+                {
+                    "id": "trafficlights",
+                    "title": "Traffic Lights",
+                    "spend": 23958,
+                    "count": 2418
+                },
+                {
+                    "id": "other",
+                    "title": "Other",
+                    "spend": 22501,
+                    "count": 1165
+                }
+            ]
         }
-      ]
-    },
-    {
-      "id": "mobile",
-      "title": "Mobile",
-      "children": [
-        {
-          "id": "ios",
-          "title": "iOS",
-          "children": [
-            {
-              "id": "iosV5",
-              "title": "iOS Version 5",
-              "spend": 1000,
-              "count": 10
-            },
-            {
-              "id": "iosV6",
-              "title": "iOS Version 6",
-              "spend": 1000,
-              "count": 10
-            },
-            {
-              "id": "iosV7",
-              "title": "iOS Version 7",
-              "spend": 1000,
-              "count": 10
-            }
-          ]
-        },
-        {
-          "id": "android",
-          "title": "Android",
-          "children": [
-            {
-              "id": "androidV1",
-              "title": "Android V1",
-              "spend": 1000,
-              "count": 10
-            },
-            {
-              "id": "androidV2",
-              "title": "Android V2",
-              "spend": 1000,
-              "count": 10
-            },
-            {
-              "id": "androidV3",
-              "title": "Android V3",
-              "spend": 1000,
-              "count": 10
-            }
-          ]
-        },
-        {
-          "id": "blackberry",
-          "title": "Blackberry",
-          "children": [
-            {
-              "id": "blackberryV1",
-              "title": "Blackberry V1",
-              "spend": 1000,
-              "count": 10
-            },
-            {
-              "id": "blackberryV2",
-              "title": "Blackberry V2",
-              "spend": 1000,
-              "count": 10
-            },
-            {
-              "id": "blackberryV3",
-              "title": "Blackberry V3",
-              "spend": 1000,
-              "count": 10
-            }
-          ]
-        },
-        {
-          "id": "windows",
-          "title": "Windows",
-          "children": [
-            {
-              "id": "windowsV7",
-              "title": "Windows V7",
-              "spend": 1000,
-              "count": 10
-            },
-            {
-              "id": "windowsV8",
-              "title": "Windows V8",
-              "spend": 1000,
-              "count": 10
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "cloud",
-      "title": "Cloud",
-      "children": [
-        {
-          "id": "iaas",
-          "title": "IAAS",
-          "spend": 1000,
-          "count": 10
-        },
-        {
-          "id": "paas",
-          "title": "PAAS",
-          "spend": 1000,
-          "count": 10
-        },
-        {
-          "id": "sass",
-          "title": "SAAS",
-          "spend": 1000,
-          "count": 10
-        }
-      ]
-    },
-    {
-      "id": "it",
-      "title": "IT",
-      "spend": 1000,
-      "count": 10
-    },
-    {
-      "id": "utilities",
-      "title": "Utilities",
-      "spend": 1000,
-      "count": 10
-    },
-    {
-      "id": "machine",
-      "title": "Machine",
-      "spend": 1000,
-      "count": 10
-    }
-  ]
+    ]
 }
