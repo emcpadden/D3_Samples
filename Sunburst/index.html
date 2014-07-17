@@ -48,6 +48,7 @@ var width = 960,
     padding = 5,
     backBlockRadius = 50,
     currentDepth = 0,
+    minXPerLine = 0.007;
     radius = Math.min(width, height) / 2;
 
 var x = d3.scale.linear()
@@ -118,20 +119,26 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
       .on("click", click);
 
   textEnter.append("tspan")
+      .attr("class", "mx-sunburstchart__slice__label--1")
       .attr("x", 0)
-      .text(function(d) { return d.depth ? d.title.split(" ")[0] : ""; });
+      .text(function(d) { 
+        return (d.depth && d.dx > minXPerLine) ? d.title.split(" ")[0] : ""; }
+        );
   textEnter.append("tspan")
+      .attr("class", "mx-sunburstchart__slice__label--2")
       .attr("x", 0)
       .attr("dy", labelFontSize)
-      .text(function(d) { return d.depth ? d.title.split(" ")[1] || "" : ""; });
+      .text(function(d) { return (d.depth && d.dx > minXPerLine*2) ? d.title.split(" ")[1] || "" : ""; });
   textEnter.append("tspan")
+      .attr("class", "mx-sunburstchart__slice__label--3")
       .attr("x", 0)
       .attr("dy", labelFontSize)
-      .text(function(d) { return d.depth ? d.title.split(" ")[2] || "" : ""; });
+      .text(function(d) { return (d.depth && d.dx > minXPerLine*3) ? d.title.split(" ")[2] || "" : ""; });
   textEnter.append("tspan")
+      .attr("class", "mx-sunburstchart__slice__label--4")
       .attr("x", 0)
       .attr("dy", labelFontSize)
-      .text(function(d) { return d.depth ? d.title.split(" ")[3] || "" : ""; });
+      .text(function(d) { return (d.depth && d.dx > minXPerLine*4) ? d.title.split(" ")[3] || "" : ""; });
 
   // add title text to the center of the chart
 
@@ -219,8 +226,7 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
 
 
  // Somewhat of a hack as we rely on arcTween updating the scales.
-    text
-    .style("visibility", function(e) {
+    text.style("visibility", function(e) {
           return isParentOf(d, e) ? null : d3.select(this).style("visibility");
       })
       .transition()
@@ -241,7 +247,31 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
         .style("fill-opacity", function(e) { return isParentOf(d, e) ? 1 : 1e-6; })
         .each("end", function(e) {
           d3.select(this).style("visibility", isParentOf(d, e) ? null : "hidden");
+
+/*
+    text.select('.mx-sunburstchart__slice__label--1')
+      .text(function(d) { 
+        return (d.depth && x(d.dx) > 2) ? d.title.split(" ")[0] : ""; }
+        );
+    text.select('.mx-sunburstchart__slice__label--2')
+      .text(function(d) { 
+        return (d.depth && x(d.dx) > 2*2) ? d.title.split(" ")[1] : ""; }
+        );
+    text.select('.mx-sunburstchart__slice__label--3')
+      .text(function(d) { 
+        return (d.depth && x(d.dx) > 3*2) ? d.title.split(" ")[2] : ""; }
+        );
+    text.select('.mx-sunburstchart__slice__label--4')
+      .text(function(d) { 
+        return (d.depth && x(d.dx) > 4*2) ? d.title.split(" ")[3] : ""; }
+        );
+*/
+
+
         });      
+
+
+
 
 if(d.depth === 0) {
 

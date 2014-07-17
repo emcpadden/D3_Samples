@@ -32,13 +32,13 @@
             "children": [
                 {
                     "id": "wirelessDevice",
-                    "title": "Wireless Device",
+                    "title": "Devices",
                     "spend": 192570,
                     "count": 2594
                 },
                 {
                     "id": "wirelessService",
-                    "title": "Wireless Service",
+                    "title": "Services",
                     "spend": 141311,
                     "count": 1284
                 }
@@ -141,24 +141,24 @@
                 {
                     "id": "fleet",
                     "title": "Fleet",
-                    "spend": 154015,
+                    "spend": 74015,
                     "count": 2114
                 },
                 {
                     "id": "vending",
                     "title": "Vending",
-                    "spend": 274658,
+                    "spend": 94658,
                     "count": 743
                 },
                 {
                     "id": "meters",
                     "title": "Meters",
-                    "spend": 77854,
+                    "spend": 27854,
                     "count": 1285
                 },
                 {
                     "id": "trafficlights",
-                    "title": "Traffic Lights",
+                    "title": "Traffic",
                     "spend": 23958,
                     "count": 2418
                 },
