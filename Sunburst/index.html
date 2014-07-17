@@ -44,8 +44,9 @@
 <script>
 
 var width = 960,
-    height = 550,
+    height = 650,
     padding = 5,
+    backBlockRadius = 50,
     currentDepth = 0,
     radius = Math.min(width, height) / 2;
 
@@ -162,25 +163,29 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
           .text("assets");
 
   var backLabelBlock = svg.append("g")
+      .append('text')
       .attr('class', 'mx-sunburstchart__back')
+      .attr('font-size', backBlockRadius/3)
+      .style("text-anchor", "middle")
       .attr('opacity', 1e-6);
       /*
           .style("fill", function(d) {
             return brightness(d3.rgb(color(root.id))) < 125 ? "#eee" : "#000";
           })
 */
-  backLabelBlock.append('text')
-          .attr('class', 'mx-sunburstchart__back__to')
-          .attr('font-size', topLevelDiameter/8)
-          .attr('dy', topLevelDiameter/18)
-          .style("text-anchor", "middle")
+  backLabelBlock.append('tspan')
+          //.attr('class', 'mx-sunburstchart__back__to')
+          //.attr('font-size', topLevelDiameter/8)
+          .attr("x", 0)
           .text("back to");
 
-  var backBlockName = backLabelBlock.append('text')
-          .attr('class', 'mx-sunburstchart__back__levelname')
-          .attr('font-size', topLevelDiameter/8)
-          .attr('dy', topLevelDiameter/5)
-          .style("text-anchor", "middle");
+  var backBlockName = backLabelBlock.append('tspan')
+          .attr("x", 0)
+          .attr('dy', backBlockRadius/3);
+          //.attr('class', 'mx-sunburstchart__back__levelname')
+          //.attr('font-size', topLevelDiameter/8)
+          //.attr('dy', topLevelDiameter/5)
+          //.style("text-anchor", "middle");
 
     backBlockName.text("");
 
@@ -192,21 +197,23 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
       .attrTween("d", arcTween(d));
 
 
-if(d.depth > 0) {
-  backBlockName.text(d.parent.title);
-  backLabelBlock.style("fill", brightness(d3.rgb(color(d.parent.id))) < 125 ? "#eee" : "#000");
-}
 
 
 //if(d.depth > 0 && currentDepth === 0) {
   // we are going to a child level from the root
   // we will need to fade out the infoBlock
   infoBlock.transition().duration(500).attr('opacity', 1e-6);
+
 //}
 //if(d.depth === 0 && currentDepth > 0) {
   // if we are going to the root from a child level, we will need to fade out the 
   // back label
-  backLabelBlock.transition().duration(500).attr('opacity', 1e-6);
+  backLabelBlock.transition().duration(500).attr('opacity', 1e-6).each('end', function() {
+    if(d.depth > 0) {
+      backBlockName.text(d.parent.title);
+      backLabelBlock.style("fill", brightness(d3.rgb(color(d.parent.id))) < 125 ? "#eee" : "#000");
+    }
+  });
 //}
 
 
@@ -276,7 +283,7 @@ function arcTween(d) {
   var maxDepth = getMaxAncestorDepth(d);
   var xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
       yd = d3.interpolate(y.domain(), [d.y, d.dy + d.dy * maxDepth]),
-      yr = d3.interpolate(y.range(), [d.y ? 50 : 0, radius]);
+      yr = d3.interpolate(y.range(), [d.y ? backBlockRadius : 0, radius]);
   return function(d, i) {
     return i
         ? function(t) { return arc(d); }
