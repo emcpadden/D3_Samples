@@ -60,7 +60,7 @@ var zoomX = d3.scale.linear()
 var y = d3.scale.linear()
     .range([0, radius]);
 
-var color = d3.scale.category20c();
+var color = d3.scale.category20();
 
 var svg = d3.select("body").append("svg")
     .attr('class', 'mx-sunburstchart')
@@ -86,7 +86,7 @@ function getChildIndex(d) {
   return index;
 }
 
-function getColor(d) {
+function setColor(d) {
   /*
   var useParent = false;
   if(currentDepth < (d.depth - 1)) {
@@ -104,26 +104,43 @@ function getColor(d) {
     return d3.rgb(color(0));
   }
 */
+var sliceColor = null;
   var useParent = false;
   if(currentDepth < (d.depth - 1)) {
     useParent = !d.children;
   }
   var colorIndex = 0;
   if(useParent){
-    colorIndex = getChildIndex(d.parent);
+    sliceColor =  d3.rgb(d.parent.color);
+    //colorIndex = getChildIndex(d.parent);
   }
   else {
-    colorIndex = getChildIndex(d);
+
+    childColor = color(getChildIndex(d));
+    if(d.parent && childColor === d.parent.color) {
+      childColor = color(d.parent.children.length);
+    }
+    /*
     parentColorIndex = d.parent ? getChildIndex(d.parent) : -1;
     if(colorIndex === parentColorIndex) {
       colorIndex = d.parent.children.length;
     }
+    */
+    sliceColor = d3.rgb(childColor);
   } 
 
+  // set the color on the node
+  //var sliceColor = d3.rgb(color(colorIndex));
+  d.color = sliceColor.toString();
 
   //return d3.rgb(color((d.children ? d : d.parent).id));
-  return d3.rgb(color(colorIndex));
+  //return d3.rgb(color(colorIndex));
+  return sliceColor;
 
+}
+
+function getColor(d) {
+  return  d3.rgb(d.color);
 }
 
 d3.json("data.json", function(error, root) {
@@ -136,7 +153,7 @@ d3.json("data.json", function(error, root) {
       .attr('class', 'mx-sunburstchart__slice')
       .attr('data-id', function(d){return d.id;})
       .attr("d", arc)
-      .style("fill", getColor);
+      .style("fill", setColor);
 
   // lets get the diameter of the inner circle
   var topLevelDiameter = ((d3.select("path[data-id='" + root.id + "']")[0])[0]).getBoundingClientRect().height;
@@ -295,7 +312,7 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
       .each(function(){
         path.transition()
           .duration(750)
-          .style("fill", getColor);
+          .style("fill", setColor);
       })
 
 
