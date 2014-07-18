@@ -51,123 +51,132 @@ var width = 960,
     minXPerLine = 0.007;
     radius = Math.min(width, height) / 2;
 
-var x = d3.scale.linear()
-    .range([0, 2 * Math.PI]);
+var x = d3.scale.linear().range([0, 2 * Math.PI]);
+var zoomX = d3.scale.linear().range([0, 1]); // this is used to make decisions on how much label text will fix in a slice
+var y = d3.scale.linear().range([0, radius]);
+var color = d3.scale.category20b();
 
-var zoomX = d3.scale.linear()
-  .range([0, 1]);
 
-var y = d3.scale.linear()
-    .range([0, radius]);
-
-var color = d3.scale.category20();
-
-var svg = d3.select("body").append("svg")
-    .attr('class', 'mx-sunburstchart')
-    .attr("width", width)
-    .attr("height", height + 10)
-  .append("g")
-    .attr("transform", "translate(" + width / 2 + "," + (height / 2 + 10) + ")");
-
-var partition = d3.layout.partition()
-    .value(function(d) { return d.spend; });
+var partition = d3.layout.partition().value(function(d) { 
+  return d.spend; 
+});
 
 var arc = d3.svg.arc()
-    .startAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x))); })
-    .endAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx))); })
-    .innerRadius(function(d) { return Math.max(0, y(d.y)); })
-    .outerRadius(function(d) { return Math.max(0, y(d.y + d.dy)); });
+  .startAngle(function(d) { 
+    return Math.max(0, Math.min(2 * Math.PI, x(d.x))); 
+  })
+  .endAngle(function(d) { 
+    return Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx))); 
+  })
+  .innerRadius(function(d) { 
+    return Math.max(0, y(d.y)); 
+  })
+  .outerRadius(function(d) { 
+    return Math.max(0, y(d.y + d.dy)); 
+  });
 
 function getChildIndex(d) {
-    var index = 0;
-   if(typeof d.parent !== 'undefined') {
+  var index = 0;
+  if(typeof d.parent !== 'undefined') {
     index = _.indexOf(d.parent.children, d, 0);
   }
   return index;
 }
 
 function setColor(d) {
-  /*
-  var useParent = false;
-  if(currentDepth < (d.depth - 1)) {
-    useParent = !d.children;
-  }
-  //return d3.rgb(color((d.children ? d : d.parent).id));
-  return d3.rgb(color((useParent ? d.parent : d).id));
-  */
-  /*
-  if(d.parent) {
-    var index = _.indexOf(d.parent.children, d, 0);
-    return d3.rgb(color(index));
-  }
-  else {
-    return d3.rgb(color(0));
-  }
-*/
-var sliceColor = null;
-  var useParent = false;
-  if(currentDepth < (d.depth - 1)) {
-    useParent = !d.children;
-  }
-  var colorIndex = 0;
-  if(useParent){
-    sliceColor =  d3.rgb(d.parent.color);
-    //colorIndex = getChildIndex(d.parent);
-  }
-  else {
+  var sliceColor = null;
 
-    childColor = color(getChildIndex(d));
-    if(d.parent && childColor === d.parent.color) {
-      childColor = color(d.parent.children.length);
+  // figure out whether we should use our parent's color
+  // or use a unique color
+  var useParent = false;
+  if(currentDepth < (d.depth - 1)) {
+    // if this slice is NOT only one slice the depth of the center slice
+    // then use the parent color if the slice has no children
+    useParent = !d.children;
+  }
+
+  if(useParent){
+    // we are using the parent color
+    d.color = d.parent.color;
+  }
+  else {
+    // get a color that is associated with the index of this 
+    // slice within its parent's children array
+    d.color = color(getChildIndex(d));
+    if(d.parent && d.color === d.parent.color) {
+      // if that color happens to be the same as the parent
+      // color, then just grab the next color
+      d.color = color(d.parent.children.length);
     }
-    /*
-    parentColorIndex = d.parent ? getChildIndex(d.parent) : -1;
-    if(colorIndex === parentColorIndex) {
-      colorIndex = d.parent.children.length;
-    }
-    */
-    sliceColor = d3.rgb(childColor);
   } 
 
-  // set the color on the node
-  //var sliceColor = d3.rgb(color(colorIndex));
-  d.color = sliceColor.toString();
+  return d3.rgb(d.color);
+}
 
-  //return d3.rgb(color((d.children ? d : d.parent).id));
-  //return d3.rgb(color(colorIndex));
-  return sliceColor;
+function isParentOf(p, c) {
+  if (p === c) return true;
+  if (p.children) {
+    return p.children.some(function(d) {
+      return isParentOf(d, c);
+    });
+  }
+  return false;
+}
 
+// http://www.w3.org/WAI/ER/WD-AERT/#color-contrast
+function brightness(rgb) {
+  return rgb.r * .299 + rgb.g * .587 + rgb.b * .114;
+}
+
+
+function getMaxAncestorDepth(d, maxDepth) {
+  maxDepth = (typeof maxDepth === 'undefined') ? d.depth : maxDepth < d.depth ? d.depth : maxDepth;
+  if(d.children) {
+    _.forEach(d.children, function(item) { 
+      var itemDepth = getMaxAncestorDepth(item, maxDepth); 
+      if(maxDepth < itemDepth) {
+        maxDepth = itemDepth;
+      }
+    });
+  }
+  return maxDepth;
 }
 
 function getColor(d) {
   return  d3.rgb(d.color);
 }
 
-d3.json("data.json", function(error, root) {
+function drawLabel(selection, labelFontSize) {
 
+}
+
+function drawLabelLine() {
+
+}
+
+function drawChart(root) {
   var data = partition.nodes(root);
-
-  var path = svg.selectAll(".mx-sunburstchart__slice")
-      .data(data)
+  var slices = svg.selectAll(".mx-sunburstchart__slice")
+    .data(data)
     .enter().append("path")
       .attr('class', 'mx-sunburstchart__slice')
       .attr('data-id', function(d){return d.id;})
       .attr("d", arc)
       .style("fill", setColor);
 
-  // lets get the diameter of the inner circle
-  var topLevelDiameter = ((d3.select("path[data-id='" + root.id + "']")[0])[0]).getBoundingClientRect().height;
+  slices.append("title")
+    .attr('class', 'mx-sunburstchart__slice__tooltip')
+    .text(function(d){return d.title;});      
 
+  slices.on("click", click);
+
+  // lets get the diameter of the inner circle
+  var topLevelDiameter = ((d3.select(".mx-sunburstchart__slice[data-id='" + root.id + "']")[0])[0]).getBoundingClientRect().height;
   // figure out font size for the labels
   var labelFontSize = Math.round(topLevelDiameter/12);
 
-  path.append("title")
-        .attr('class', 'mx-sunburstchart__slice__tooltip')
-        .text(function(d){return d.title;});      
-  path.on("click", click);
-
-var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
-  var textEnter = text.enter().append("text")
+  var textLabels = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
+  var textEnter = textLabels.enter().append("text")
       .attr('class', 'mx-sunburstchart__slice__label')
       .style("fill-opacity", 1)
       .style("font-size", labelFontSize)
@@ -187,86 +196,86 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
       .on("click", click);
 
   textEnter.append("tspan")
-      .attr("class", "mx-sunburstchart__slice__label--1")
-      .attr("x", 0)
-      .text(function(d) { 
-        return (d.depth && d.dx > minXPerLine) ? d.title.split(" ")[0] : ""; }
-        );
+    .attr("class", "mx-sunburstchart__slice__label--1")
+    .attr("x", 0)
+    .text(function(d) { 
+      return (d.depth && d.dx > minXPerLine) ? d.title.split(" ")[0] : ""; }
+    );
+
   textEnter.append("tspan")
-      .attr("class", "mx-sunburstchart__slice__label--2")
-      .attr("x", 0)
-      .attr("dy", labelFontSize)
-      .text(function(d) { return (d.depth && d.dx > minXPerLine*2) ? d.title.split(" ")[1] || "" : ""; });
+    .attr("class", "mx-sunburstchart__slice__label--2")
+    .attr("x", 0)
+    .attr("dy", labelFontSize)
+    .text(function(d) { 
+      return (d.depth && d.dx > minXPerLine*2) ? d.title.split(" ")[1] || "" : ""; 
+    });
+
   textEnter.append("tspan")
-      .attr("class", "mx-sunburstchart__slice__label--3")
-      .attr("x", 0)
-      .attr("dy", labelFontSize)
-      .text(function(d) { return (d.depth && d.dx > minXPerLine*3) ? d.title.split(" ")[2] || "" : ""; });
+    .attr("class", "mx-sunburstchart__slice__label--3")
+    .attr("x", 0)
+    .attr("dy", labelFontSize)
+    .text(function(d) { 
+      return (d.depth && d.dx > minXPerLine*3) ? d.title.split(" ")[2] || "" : ""; 
+    });
   textEnter.append("tspan")
-      .attr("class", "mx-sunburstchart__slice__label--4")
-      .attr("x", 0)
-      .attr("dy", labelFontSize)
-      .text(function(d) { return (d.depth && d.dx > minXPerLine*4) ? d.title.split(" ")[3] || "" : ""; });
+    .attr("class", "mx-sunburstchart__slice__label--4")
+    .attr("x", 0)
+    .attr("dy", labelFontSize)
+    .text(function(d) { 
+      return (d.depth && d.dx > minXPerLine*4) ? d.title.split(" ")[3] || "" : ""; 
+    });
 
   // add title text to the center of the chart
-
   // lets get the diameter of the inner circle
-//  var topLevelDiameter = ((d3.select("path[data-id='" + root.id + "']")[0])[0]).getBoundingClientRect().height;
-
   var infoBlock = svg.append("g")
-      .attr('class', 'mx-sunburstchart__info')
-      .attr('opacity', 1);
+    .attr('class', 'mx-sunburstchart__info')
+    .attr('opacity', 1);
 
   infoBlock.append('text')
-          .attr('class', 'mx-sunburstchart__info__itemcount')
-          .style("fill", function(d) {
-            return brightness(getColor(root)) < 125 ? "#eee" : "#000";
-          })
-          .attr('font-size', topLevelDiameter/2.5)
-          .attr('dy', topLevelDiameter/18)
-          .style("text-anchor", "middle")
-          .text("10K");
+    .attr('class', 'mx-sunburstchart__info__itemcount')
+    .style("fill", function(d) {
+      return brightness(getColor(root)) < 125 ? "#eee" : "#000";
+    })
+    .attr('font-size', topLevelDiameter/2.5)
+    .attr('dy', topLevelDiameter/18)
+    .style("text-anchor", "middle")
+    .text("10K");
 
   infoBlock.append('text')
-          .attr('class', 'mx-sunburstchart__info__itemtype')
-          .style("fill", function(d) {
-            return brightness(getColor(root)) < 125 ? "#eee" : "#000";
-          })
-          .attr('font-size', topLevelDiameter/8)
-          .attr('dy', topLevelDiameter/5)
-          .style("text-anchor", "middle")
-          .text("assets");
+    .attr('class', 'mx-sunburstchart__info__itemtype')
+    .style("fill", function(d) {
+      return brightness(getColor(root)) < 125 ? "#eee" : "#000";
+    })
+    .attr('font-size', topLevelDiameter/8)
+    .attr('dy', topLevelDiameter/5)
+    .style("text-anchor", "middle")
+    .text("assets");
 
   var backLabelBlock = svg.append("g")
-      .append('text')
-      .attr('class', 'mx-sunburstchart__back')
-      .attr('font-size', backBlockRadius/3)
-      .style("text-anchor", "middle")
-      .attr('opacity', 1e-6);
+    .append('text')
+    .attr('class', 'mx-sunburstchart__back')
+    .attr('font-size', backBlockRadius/3)
+    .style("text-anchor", "middle")
+    .attr('opacity', 1e-6);
 
   backLabelBlock.append('tspan')
-          .attr("x", 0)
-          .text("back to");
+    .attr("x", 0)
+    .text("back to");
 
   var backBlockName = backLabelBlock.append('tspan')
-          .attr("x", 0)
-          .attr('dy', backBlockRadius/3);
+    .attr("x", 0)
+    .attr('dy', backBlockRadius/3);
 
-    backBlockName.text("");
-
+  backBlockName.text("");
 
   function click(d) {
-
     var zoomOut = (d.depth < currentDepth);
     // update the currentDepth
-  currentDepth = d.depth;
-
-
+    currentDepth = d.depth;
     var maxDepth = getMaxAncestorDepth(d);
     var xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
         yd = d3.interpolate(y.domain(), [d.y, d.dy + d.dy * maxDepth]),
         yr = d3.interpolate(y.range(), [d.y ? backBlockRadius : 0, radius]);
-
     zoomX.domain([0, d.dx]);
 
      // Interpolate the scales!
@@ -287,129 +296,100 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
     });
 
     if(zoomOut) {
-    text.select('.mx-sunburstchart__slice__label--1')
-      .text(function(d) { 
-        return (d.depth && zoomX(d.dx) > minXPerLine) ? d.title.split(" ")[0] : ""; }
-        );
-    text.select('.mx-sunburstchart__slice__label--2')
-      .text(function(d) { 
-        return (d.depth && zoomX(d.dx) > 2*minXPerLine) ? d.title.split(" ")[1] : ""; }
-        );
-    text.select('.mx-sunburstchart__slice__label--3')
-      .text(function(d) { 
-        return (d.depth && zoomX(d.dx) > 3*minXPerLine) ? d.title.split(" ")[2] : ""; }
-        );
-    text.select('.mx-sunburstchart__slice__label--4')
-      .text(function(d) { 
-        return (d.depth && zoomX(d.dx) > 4*minXPerLine) ? d.title.split(" ")[3] : ""; }
-        );
-
+      textLabels.select('.mx-sunburstchart__slice__label--1')
+        .text(function(d) { 
+          return (d.depth && zoomX(d.dx) > minXPerLine) ? d.title.split(" ")[0] : ""; }
+          );
+      textLabels.select('.mx-sunburstchart__slice__label--2')
+        .text(function(d) { 
+          return (d.depth && zoomX(d.dx) > 2*minXPerLine) ? d.title.split(" ")[1] : ""; }
+          );
+      textLabels.select('.mx-sunburstchart__slice__label--3')
+        .text(function(d) { 
+          return (d.depth && zoomX(d.dx) > 3*minXPerLine) ? d.title.split(" ")[2] : ""; }
+          );
+      textLabels.select('.mx-sunburstchart__slice__label--4')
+        .text(function(d) { 
+          return (d.depth && zoomX(d.dx) > 4*minXPerLine) ? d.title.split(" ")[3] : ""; }
+          );
     }
 
-    path.transition()
+    slices.transition()
       .duration(750)
       .attrTween("d", arcTween(d))
       .each(function(){
-        path.transition()
+        slices.transition()
           .duration(750)
           .style("fill", setColor);
+      });
+
+    // Somewhat of a hack as we rely on arcTween updating the scales.
+    textLabels.style("visibility", function(e) {
+      return isParentOf(d, e) ? null : d3.select(this).style("visibility");
+    })
+    .transition()
+      .duration(750)
+      .attrTween("text-anchor", function(d) {
+        return function() {
+          return x(d.x + d.dx / 2) > Math.PI ? "end" : "start";
+        };
       })
-
-
-
- // Somewhat of a hack as we rely on arcTween updating the scales.
-    text.style("visibility", function(e) {
-          return isParentOf(d, e) ? null : d3.select(this).style("visibility");
+      .attrTween("transform", function(d) {
+        var multiline = (d.title || "").split(" ").length > 1;
+        return function() {
+          var angle = x(d.x + d.dx / 2) * 180 / Math.PI - 90;
+          var rotate = angle + (multiline ? -.5 : 0);
+          return "rotate(" + rotate + ")translate(" + (y(d.y) + padding) + ")rotate(" + (angle > 90 ? -180 : 0) + ")";
+        };
       })
-      .transition()
-        .duration(750)
-        .attrTween("text-anchor", function(d) {
-          return function() {
-            return x(d.x + d.dx / 2) > Math.PI ? "end" : "start";
-          };
-        })
-        .attrTween("transform", function(d) {
-          var multiline = (d.title || "").split(" ").length > 1;
-          return function() {
-            var angle = x(d.x + d.dx / 2) * 180 / Math.PI - 90,
-                rotate = angle + (multiline ? -.5 : 0);
-            return "rotate(" + rotate + ")translate(" + (y(d.y) + padding) + ")rotate(" + (angle > 90 ? -180 : 0) + ")";
-          };
-        })
-        .style("fill-opacity", function(e) { return isParentOf(d, e) ? 1 : 1e-6; })
-        .each("end", function(e) {
-          d3.select(this).style("visibility", isParentOf(d, e) ? null : "hidden");
+      .style("fill-opacity", function(e) { return isParentOf(d, e) ? 1 : 1e-6; })
+      .style("fill", function(d) {
+        return brightness(getColor(d)) < 125 ? "#eee" : "#000";
+      })
+      .each("end", function(e) {
+        d3.select(this).style("visibility", isParentOf(d, e) ? null : "hidden");
 
-    text.select('.mx-sunburstchart__slice__label--1')
-      .text(function(d) { 
-        return (d.depth && zoomX(d.dx) > minXPerLine) ? d.title.split(" ")[0] : ""; }
-        );
-    text.select('.mx-sunburstchart__slice__label--2')
-      .text(function(d) { 
-        return (d.depth && zoomX(d.dx) > 2*minXPerLine) ? d.title.split(" ")[1] : ""; }
-        );
-    text.select('.mx-sunburstchart__slice__label--3')
-      .text(function(d) { 
-        return (d.depth && zoomX(d.dx) > 3*minXPerLine) ? d.title.split(" ")[2] : ""; }
-        );
-    text.select('.mx-sunburstchart__slice__label--4')
-      .text(function(d) { 
-        return (d.depth && zoomX(d.dx) > 4*minXPerLine) ? d.title.split(" ")[3] : ""; }
-        );
+        textLabels.select('.mx-sunburstchart__slice__label--1')
+          .text(function(d) { 
+            return (d.depth && zoomX(d.dx) > minXPerLine) ? d.title.split(" ")[0] : ""; }
+          );
+        textLabels.select('.mx-sunburstchart__slice__label--2')
+          .text(function(d) { 
+            return (d.depth && zoomX(d.dx) > 2*minXPerLine) ? d.title.split(" ")[1] : ""; }
+          );
+        textLabels.select('.mx-sunburstchart__slice__label--3')
+          .text(function(d) { 
+            return (d.depth && zoomX(d.dx) > 3*minXPerLine) ? d.title.split(" ")[2] : ""; }
+          );
+        textLabels.select('.mx-sunburstchart__slice__label--4')
+          .text(function(d) { 
+            return (d.depth && zoomX(d.dx) > 4*minXPerLine) ? d.title.split(" ")[3] : ""; }
+          );
+      });      
 
-
-
-        });      
-
-
-
-
-if(d.depth === 0) {
-
-  // we are going from a child level to the root
-  // we will need to fade in the infoBlock
-  infoBlock.transition().delay(500).duration(500).attr('opacity', 1);
-}
-if(d.depth > 0) {
-  // if we are going from the root to a child we will need to fade in the back link
-  backLabelBlock.transition().delay(500).duration(500).attr('opacity', 1);
+      if(d.depth === 0) {
+        // we are going from a child level to the root
+        // we will need to fade in the infoBlock
+        infoBlock.transition().delay(500).duration(500).attr('opacity', 1);
+      }
+      if(d.depth > 0) {
+        // if we are going from the root to a child we will need to fade in the back link
+        backLabelBlock.transition().delay(500).duration(500).attr('opacity', 1);
+      }
+    }
 }
 
+var svg = d3.select("body").append("svg")
+  .attr('class', 'mx-sunburstchart')
+  .attr("width", width)
+  .attr("height", height + 10)
+  .append("g")
+    .attr("transform", "translate(" + width / 2 + "," + (height / 2 + 10) + ")");
 
-
-
-  }
-
+d3.json("data.json", function(error, root) {
+  drawChart(root);
 });
-
 d3.select(self.frameElement).style("height", height + "px");
 
-function isParentOf(p, c) {
-  if (p === c) return true;
-  if (p.children) {
-    return p.children.some(function(d) {
-      return isParentOf(d, c);
-    });
-  }
-  return false;
-}
-// http://www.w3.org/WAI/ER/WD-AERT/#color-contrast
-function brightness(rgb) {
-  return rgb.r * .299 + rgb.g * .587 + rgb.b * .114;
-}
-
-
-function getMaxAncestorDepth(d, maxDepth) {
-  maxDepth = (typeof maxDepth === 'undefined') ? d.depth : maxDepth < d.depth ? d.depth : maxDepth;
-  if(d.children) {
-    _.forEach(d.children, function(item) { 
-      var itemDepth = getMaxAncestorDepth(item, maxDepth); 
-      if(maxDepth < itemDepth) {
-        maxDepth = itemDepth;
-      }
-    });
-  }
-  return maxDepth;
-}
 
 </script>
