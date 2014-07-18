@@ -78,6 +78,15 @@ var arc = d3.svg.arc()
     .innerRadius(function(d) { return Math.max(0, y(d.y)); })
     .outerRadius(function(d) { return Math.max(0, y(d.y + d.dy)); });
 
+function getColor(d) {
+  var useParent = false;
+  if(currentDepth < (d.depth - 1)) {
+    useParent = !d.children;
+  }
+  //return d3.rgb(color((d.children ? d : d.parent).id));
+  return d3.rgb(color((useParent ? d.parent : d).id));
+}
+
 d3.json("data.json", function(error, root) {
 
   var data = partition.nodes(root);
@@ -88,7 +97,7 @@ d3.json("data.json", function(error, root) {
       .attr('class', 'mx-sunburstchart__slice')
       .attr('data-id', function(d){return d.id;})
       .attr("d", arc)
-      .style("fill", function(d) { return color((d.children ? d : d.parent).id); });
+      .style("fill", getColor);
 
   // lets get the diameter of the inner circle
   var topLevelDiameter = ((d3.select("path[data-id='" + root.id + "']")[0])[0]).getBoundingClientRect().height;
@@ -107,7 +116,7 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
       .style("fill-opacity", 1)
       .style("font-size", labelFontSize)
       .style("fill", function(d) {
-        return brightness(d3.rgb(color((d.children ? d : d.parent).id))) < 125 ? "#eee" : "#000";
+        return brightness(getColor(d)) < 125 ? "#eee" : "#000";
       })
       .attr("text-anchor", function(d) {
         return x(d.x + d.dx / 2) > Math.PI ? "end" : "start";
@@ -155,7 +164,7 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
   infoBlock.append('text')
           .attr('class', 'mx-sunburstchart__info__itemcount')
           .style("fill", function(d) {
-            return brightness(d3.rgb(color(root.id))) < 125 ? "#eee" : "#000";
+            return brightness(getColor(root)) < 125 ? "#eee" : "#000";
           })
           .attr('font-size', topLevelDiameter/2.5)
           .attr('dy', topLevelDiameter/18)
@@ -165,7 +174,7 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
   infoBlock.append('text')
           .attr('class', 'mx-sunburstchart__info__itemtype')
           .style("fill", function(d) {
-            return brightness(d3.rgb(color(root.id))) < 125 ? "#eee" : "#000";
+            return brightness(getColor(root)) < 125 ? "#eee" : "#000";
           })
           .attr('font-size', topLevelDiameter/8)
           .attr('dy', topLevelDiameter/5)
@@ -178,24 +187,14 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
       .attr('font-size', backBlockRadius/3)
       .style("text-anchor", "middle")
       .attr('opacity', 1e-6);
-      /*
-          .style("fill", function(d) {
-            return brightness(d3.rgb(color(root.id))) < 125 ? "#eee" : "#000";
-          })
-*/
+
   backLabelBlock.append('tspan')
-          //.attr('class', 'mx-sunburstchart__back__to')
-          //.attr('font-size', topLevelDiameter/8)
           .attr("x", 0)
           .text("back to");
 
   var backBlockName = backLabelBlock.append('tspan')
           .attr("x", 0)
           .attr('dy', backBlockRadius/3);
-          //.attr('class', 'mx-sunburstchart__back__levelname')
-          //.attr('font-size', topLevelDiameter/8)
-          //.attr('dy', topLevelDiameter/5)
-          //.style("text-anchor", "middle");
 
     backBlockName.text("");
 
@@ -203,6 +202,9 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
   function click(d) {
 
     var zoomOut = (d.depth < currentDepth);
+    // update the currentDepth
+  currentDepth = d.depth;
+
 
     var maxDepth = getMaxAncestorDepth(d);
     var xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
@@ -224,7 +226,7 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
     backLabelBlock.transition().duration(500).attr('opacity', 1e-6).each('end', function() {
       if(d.depth > 0) {
         backBlockName.text(d.parent.title);
-        backLabelBlock.style("fill", brightness(d3.rgb(color(d.parent.id))) < 125 ? "#eee" : "#000");
+        backLabelBlock.style("fill", brightness(getColor(d.parent)) < 125 ? "#eee" : "#000");
       }
     });
 
@@ -250,7 +252,14 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
 
     path.transition()
       .duration(750)
-      .attrTween("d", arcTween(d));
+      .attrTween("d", arcTween(d))
+      .each(function(){
+        path.transition()
+          .duration(750)
+          .style("fill", getColor);
+      })
+
+
 
  // Somewhat of a hack as we rely on arcTween updating the scales.
     text.style("visibility", function(e) {
@@ -312,8 +321,6 @@ if(d.depth > 0) {
 
 
 
-  // update the currentDepth
-  currentDepth = d.depth;
 
   }
 
