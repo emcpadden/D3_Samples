@@ -54,6 +54,9 @@ var width = 960,
 var x = d3.scale.linear()
     .range([0, 2 * Math.PI]);
 
+var zoomX = d3.scale.linear()
+  .range([0, 1]);
+
 var y = d3.scale.linear()
     .range([0, radius]);
 
@@ -198,32 +201,56 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
 
 
   function click(d) {
+
+    var zoomOut = (d.depth < currentDepth);
+
     var maxDepth = getMaxAncestorDepth(d);
+    var xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
+        yd = d3.interpolate(y.domain(), [d.y, d.dy + d.dy * maxDepth]),
+        yr = d3.interpolate(y.range(), [d.y ? backBlockRadius : 0, radius]);
+
+    zoomX.domain([0, d.dx]);
+
+     // Interpolate the scales!
+    function arcTween(d) {
+      return function(d, i) {
+        return i
+            ? function(t) { return arc(d); }
+            : function(t) { x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); return arc(d); };
+      };
+    }
+   
+    infoBlock.transition().duration(500).attr('opacity', 1e-6);
+    backLabelBlock.transition().duration(500).attr('opacity', 1e-6).each('end', function() {
+      if(d.depth > 0) {
+        backBlockName.text(d.parent.title);
+        backLabelBlock.style("fill", brightness(d3.rgb(color(d.parent.id))) < 125 ? "#eee" : "#000");
+      }
+    });
+
+    if(zoomOut) {
+    text.select('.mx-sunburstchart__slice__label--1')
+      .text(function(d) { 
+        return (d.depth && zoomX(d.dx) > minXPerLine) ? d.title.split(" ")[0] : ""; }
+        );
+    text.select('.mx-sunburstchart__slice__label--2')
+      .text(function(d) { 
+        return (d.depth && zoomX(d.dx) > 2*minXPerLine) ? d.title.split(" ")[1] : ""; }
+        );
+    text.select('.mx-sunburstchart__slice__label--3')
+      .text(function(d) { 
+        return (d.depth && zoomX(d.dx) > 3*minXPerLine) ? d.title.split(" ")[2] : ""; }
+        );
+    text.select('.mx-sunburstchart__slice__label--4')
+      .text(function(d) { 
+        return (d.depth && zoomX(d.dx) > 4*minXPerLine) ? d.title.split(" ")[3] : ""; }
+        );
+
+    }
+
     path.transition()
       .duration(750)
       .attrTween("d", arcTween(d));
-
-
-
-
-//if(d.depth > 0 && currentDepth === 0) {
-  // we are going to a child level from the root
-  // we will need to fade out the infoBlock
-  infoBlock.transition().duration(500).attr('opacity', 1e-6);
-
-//}
-//if(d.depth === 0 && currentDepth > 0) {
-  // if we are going to the root from a child level, we will need to fade out the 
-  // back label
-  backLabelBlock.transition().duration(500).attr('opacity', 1e-6).each('end', function() {
-    if(d.depth > 0) {
-      backBlockName.text(d.parent.title);
-      backLabelBlock.style("fill", brightness(d3.rgb(color(d.parent.id))) < 125 ? "#eee" : "#000");
-    }
-  });
-//}
-
-
 
  // Somewhat of a hack as we rely on arcTween updating the scales.
     text.style("visibility", function(e) {
@@ -248,24 +275,23 @@ var text = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
         .each("end", function(e) {
           d3.select(this).style("visibility", isParentOf(d, e) ? null : "hidden");
 
-/*
     text.select('.mx-sunburstchart__slice__label--1')
       .text(function(d) { 
-        return (d.depth && x(d.dx) > 2) ? d.title.split(" ")[0] : ""; }
+        return (d.depth && zoomX(d.dx) > minXPerLine) ? d.title.split(" ")[0] : ""; }
         );
     text.select('.mx-sunburstchart__slice__label--2')
       .text(function(d) { 
-        return (d.depth && x(d.dx) > 2*2) ? d.title.split(" ")[1] : ""; }
+        return (d.depth && zoomX(d.dx) > 2*minXPerLine) ? d.title.split(" ")[1] : ""; }
         );
     text.select('.mx-sunburstchart__slice__label--3')
       .text(function(d) { 
-        return (d.depth && x(d.dx) > 3*2) ? d.title.split(" ")[2] : ""; }
+        return (d.depth && zoomX(d.dx) > 3*minXPerLine) ? d.title.split(" ")[2] : ""; }
         );
     text.select('.mx-sunburstchart__slice__label--4')
       .text(function(d) { 
-        return (d.depth && x(d.dx) > 4*2) ? d.title.split(" ")[3] : ""; }
+        return (d.depth && zoomX(d.dx) > 4*minXPerLine) ? d.title.split(" ")[3] : ""; }
         );
-*/
+
 
 
         });      
@@ -308,18 +334,7 @@ function isParentOf(p, c) {
 function brightness(rgb) {
   return rgb.r * .299 + rgb.g * .587 + rgb.b * .114;
 }
-// Interpolate the scales!
-function arcTween(d) {
-  var maxDepth = getMaxAncestorDepth(d);
-  var xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
-      yd = d3.interpolate(y.domain(), [d.y, d.dy + d.dy * maxDepth]),
-      yr = d3.interpolate(y.range(), [d.y ? backBlockRadius : 0, radius]);
-  return function(d, i) {
-    return i
-        ? function(t) { return arc(d); }
-        : function(t) { x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); return arc(d); };
-  };
-}
+
 
 function getMaxAncestorDepth(d, maxDepth) {
   maxDepth = (typeof maxDepth === 'undefined') ? d.depth : maxDepth < d.depth ? d.depth : maxDepth;
