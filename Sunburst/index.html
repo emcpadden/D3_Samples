@@ -49,9 +49,9 @@ var width = 960,
     minXPerLine = 0.007;
     radius = Math.min(width, height) / 2;
 
-var x = d3.scale.linear().range([0, 2 * Math.PI]);
-var zoomX = d3.scale.linear().range([0, 1]); // this is used to make decisions on how much label text will fix in a slice
-var y = d3.scale.linear().range([0, radius]);
+var scaleX = d3.scale.linear().range([0, 2 * Math.PI]);
+var labelScaleX = d3.scale.linear().range([0, 1]); // this is used to make decisions on how much label text will fix in a slice
+var scaleY = d3.scale.linear().range([0, radius]);
 var color = d3.scale.category20b();
 
 
@@ -61,16 +61,16 @@ var partition = d3.layout.partition().value(function(d) {
 
 var arc = d3.svg.arc()
   .startAngle(function(d) { 
-    return Math.max(0, Math.min(2 * Math.PI, x(d.x))); 
+    return Math.max(0, Math.min(2 * Math.PI, scaleX(d.x))); 
   })
   .endAngle(function(d) { 
-    return Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx))); 
+    return Math.max(0, Math.min(2 * Math.PI, scaleX(d.x + d.dx))); 
   })
   .innerRadius(function(d) { 
-    return Math.max(0, y(d.y)); 
+    return Math.max(0, scaleY(d.y)); 
   })
   .outerRadius(function(d) { 
-    return Math.max(0, y(d.y + d.dy)); 
+    return Math.max(0, scaleY(d.y + d.dy)); 
   });
 
 function getChildIndex(d) {
@@ -144,14 +144,6 @@ function getColor(d) {
   return  d3.rgb(d.color);
 }
 
-function drawLabel(selection, labelFontSize) {
-
-}
-
-function drawLabelLine() {
-
-}
-
 function drawChart(root) {
   var data = partition.nodes(root);
   var slices = svg.selectAll(".mx-sunburstchart__slice")
@@ -182,14 +174,14 @@ function drawChart(root) {
         return brightness(getColor(d)) < 125 ? "#eee" : "#000";
       })
       .attr("text-anchor", function(d) {
-        return x(d.x + d.dx / 2) > Math.PI ? "end" : "start";
+        return scaleX(d.x + d.dx / 2) > Math.PI ? "end" : "start";
       })
       .attr("dy", "3")
       .attr("transform", function(d) {
         var multiline = (d.title || "").split(" ").length > 1,
-            angle = x(d.x + d.dx / 2) * 180 / Math.PI - 90,
+            angle = scaleX(d.x + d.dx / 2) * 180 / Math.PI - 90,
             rotate = angle + (multiline ? -.5 : 0);
-        return "rotate(" + rotate + ")translate(" + (y(d.y) + padding) + ")rotate(" + (angle > 90 ? -180 : 0) + ")";
+        return "rotate(" + rotate + ")translate(" + (scaleY(d.y) + padding) + ")rotate(" + (angle > 90 ? -180 : 0) + ")";
       })
       .on("click", click);
 
@@ -271,17 +263,18 @@ function drawChart(root) {
     // update the currentDepth
     currentDepth = d.depth;
     var maxDepth = getMaxAncestorDepth(d);
-    var xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
-        yd = d3.interpolate(y.domain(), [d.y, d.dy + d.dy * maxDepth]),
-        yr = d3.interpolate(y.range(), [d.y ? backBlockRadius : 0, radius]);
-    zoomX.domain([0, d.dx]);
+    var scaleXDomainInterpolator = d3.interpolate(scaleX.domain(), [d.x, d.x + d.dx]);
+    var scaleYDomainInterpolator = d3.interpolate(scaleY.domain(), [d.y, d.dy + d.dy * maxDepth]);
+    var scaleYRadiusInterpolator = d3.interpolate(scaleY.range(), [d.y ? backBlockRadius : 0, radius]);
+
+    labelScaleX.domain([0, d.dx]);
 
      // Interpolate the scales!
     function arcTween(d) {
       return function(d, i) {
         return i
             ? function(t) { return arc(d); }
-            : function(t) { x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); return arc(d); };
+            : function(t) { scaleX.domain(scaleXDomainInterpolator(t)); scaleY.domain(scaleYDomainInterpolator(t)).range(scaleYRadiusInterpolator(t)); return arc(d); };
       };
     }
    
@@ -296,19 +289,19 @@ function drawChart(root) {
     if(zoomOut) {
       textLabels.select('.mx-sunburstchart__slice__label--1')
         .text(function(d) { 
-          return (d.depth && zoomX(d.dx) > minXPerLine) ? d.title.split(" ")[0] : ""; }
+          return (d.depth && labelScaleX(d.dx) > minXPerLine) ? d.title.split(" ")[0] : ""; }
           );
       textLabels.select('.mx-sunburstchart__slice__label--2')
         .text(function(d) { 
-          return (d.depth && zoomX(d.dx) > 2*minXPerLine) ? d.title.split(" ")[1] : ""; }
+          return (d.depth && labelScaleX(d.dx) > 2*minXPerLine) ? d.title.split(" ")[1] : ""; }
           );
       textLabels.select('.mx-sunburstchart__slice__label--3')
         .text(function(d) { 
-          return (d.depth && zoomX(d.dx) > 3*minXPerLine) ? d.title.split(" ")[2] : ""; }
+          return (d.depth && labelScaleX(d.dx) > 3*minXPerLine) ? d.title.split(" ")[2] : ""; }
           );
       textLabels.select('.mx-sunburstchart__slice__label--4')
         .text(function(d) { 
-          return (d.depth && zoomX(d.dx) > 4*minXPerLine) ? d.title.split(" ")[3] : ""; }
+          return (d.depth && labelScaleX(d.dx) > 4*minXPerLine) ? d.title.split(" ")[3] : ""; }
           );
     }
 
@@ -329,15 +322,15 @@ function drawChart(root) {
       .duration(750)
       .attrTween("text-anchor", function(d) {
         return function() {
-          return x(d.x + d.dx / 2) > Math.PI ? "end" : "start";
+          return scaleX(d.x + d.dx / 2) > Math.PI ? "end" : "start";
         };
       })
       .attrTween("transform", function(d) {
         var multiline = (d.title || "").split(" ").length > 1;
         return function() {
-          var angle = x(d.x + d.dx / 2) * 180 / Math.PI - 90;
+          var angle = scaleX(d.x + d.dx / 2) * 180 / Math.PI - 90;
           var rotate = angle + (multiline ? -.5 : 0);
-          return "rotate(" + rotate + ")translate(" + (y(d.y) + padding) + ")rotate(" + (angle > 90 ? -180 : 0) + ")";
+          return "rotate(" + rotate + ")translate(" + (scaleY(d.y) + padding) + ")rotate(" + (angle > 90 ? -180 : 0) + ")";
         };
       })
       .style("fill-opacity", function(e) { return isParentOf(d, e) ? 1 : 1e-6; })
@@ -349,19 +342,19 @@ function drawChart(root) {
 
         textLabels.select('.mx-sunburstchart__slice__label--1')
           .text(function(d) { 
-            return (d.depth && zoomX(d.dx) > minXPerLine) ? d.title.split(" ")[0] : ""; }
+            return (d.depth && labelScaleX(d.dx) > minXPerLine) ? d.title.split(" ")[0] : ""; }
           );
         textLabels.select('.mx-sunburstchart__slice__label--2')
           .text(function(d) { 
-            return (d.depth && zoomX(d.dx) > 2*minXPerLine) ? d.title.split(" ")[1] : ""; }
+            return (d.depth && labelScaleX(d.dx) > 2*minXPerLine) ? d.title.split(" ")[1] : ""; }
           );
         textLabels.select('.mx-sunburstchart__slice__label--3')
           .text(function(d) { 
-            return (d.depth && zoomX(d.dx) > 3*minXPerLine) ? d.title.split(" ")[2] : ""; }
+            return (d.depth && labelScaleX(d.dx) > 3*minXPerLine) ? d.title.split(" ")[2] : ""; }
           );
         textLabels.select('.mx-sunburstchart__slice__label--4')
           .text(function(d) { 
-            return (d.depth && zoomX(d.dx) > 4*minXPerLine) ? d.title.split(" ")[3] : ""; }
+            return (d.depth && labelScaleX(d.dx) > 4*minXPerLine) ? d.title.split(" ")[3] : ""; }
           );
       });      
 
