@@ -49,6 +49,9 @@ var width = 960,
     minXPerLine = 0.007;
     radius = Math.min(width, height) / 2;
 
+var lightLabelColor = "#eee"; // The color to use for a label that is on a dark color slice (so it needs to be light to show up)
+var darkLabelColor = "#000"; // The color to use for a label that is on a light color slice (so it needs to be dark to show up)
+
 var scaleX = d3.scale.linear().range([0, 2 * Math.PI]);
 var labelScaleX = d3.scale.linear().range([0, 1]); // this is used to make decisions on how much label text will fix in a slice
 var scaleY = d3.scale.linear().range([0, radius]);
@@ -111,11 +114,11 @@ function setColor(d) {
   return d3.rgb(d.color);
 }
 
-function isParentOf(p, c) {
-  if (p === c) return true;
-  if (p.children) {
-    return p.children.some(function(d) {
-      return isParentOf(d, c);
+function isParentOf(parentItem, childItem) {
+  if (parentItem === childItem) return true;
+  if (parentItem.children) {
+    return parentItem.children.some(function(d) {
+      return isParentOf(d, childItem);
     });
   }
   return false;
@@ -124,6 +127,10 @@ function isParentOf(p, c) {
 // http://www.w3.org/WAI/ER/WD-AERT/#color-contrast
 function brightness(rgb) {
   return rgb.r * .299 + rgb.g * .587 + rgb.b * .114;
+}
+
+function getLabelColor(sliceColorRGB) {
+  return brightness(sliceColorRGB) < 125 ? lightLabelColor : darkLabelColor;
 }
 
 
@@ -171,7 +178,7 @@ function drawChart(root) {
       .style("fill-opacity", 1)
       .style("font-size", labelFontSize)
       .style("fill", function(d) {
-        return brightness(getColor(d)) < 125 ? "#eee" : "#000";
+        return getLabelColor(getColor(d));
       })
       .attr("text-anchor", function(d) {
         return scaleX(d.x + d.dx / 2) > Math.PI ? "end" : "start";
@@ -224,7 +231,7 @@ function drawChart(root) {
   infoBlock.append('text')
     .attr('class', 'mx-sunburstchart__info__itemcount')
     .style("fill", function(d) {
-      return brightness(getColor(root)) < 125 ? "#eee" : "#000";
+      return getLabelColor(getColor(root));
     })
     .attr('font-size', topLevelDiameter/2.5)
     .attr('dy', topLevelDiameter/18)
@@ -234,7 +241,7 @@ function drawChart(root) {
   infoBlock.append('text')
     .attr('class', 'mx-sunburstchart__info__itemtype')
     .style("fill", function(d) {
-      return brightness(getColor(root)) < 125 ? "#eee" : "#000";
+      return getLabelColor(getColor(root));
     })
     .attr('font-size', topLevelDiameter/8)
     .attr('dy', topLevelDiameter/5)
@@ -282,7 +289,7 @@ function drawChart(root) {
     backLabelBlock.transition().duration(500).attr('opacity', 1e-6).each('end', function() {
       if(d.depth > 0) {
         backBlockName.text(d.parent.title);
-        backLabelBlock.style("fill", brightness(getColor(d.parent)) < 125 ? "#eee" : "#000");
+        backLabelBlock.style("fill", getLabelColor(getColor(d.parent)));
       }
     });
 
@@ -335,7 +342,7 @@ function drawChart(root) {
       })
       .style("fill-opacity", function(e) { return isParentOf(d, e) ? 1 : 1e-6; })
       .style("fill", function(d) {
-        return brightness(getColor(d)) < 125 ? "#eee" : "#000";
+        return getLabelColor(getColor(d));
       })
       .each("end", function(e) {
         d3.select(this).style("visibility", isParentOf(d, e) ? null : "hidden");
