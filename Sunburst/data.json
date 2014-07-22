@@ -103,7 +103,7 @@
                     "count": 1471
                 },
                 {
-                    "id": "other",
+                    "id": "itother",
                     "title": "Other",
                     "spend": 22501,
                     "count": 1165
@@ -163,7 +163,7 @@
                     "count": 2418
                 },
                 {
-                    "id": "other",
+                    "id": "machineother",
                     "title": "Other",
                     "spend": 22501,
                     "count": 1165
