@@ -253,7 +253,7 @@ function drawChart(root) {
   // figure out font size for the labels
   var labelFontSize = Math.round(topLevelDiameter/12);
 
-  var textLabels = svg.selectAll(".mx-sunburstchart__slice__label").data(data, keyFunction);
+  var textLabels = svg.selectAll(".mx-sunburstchart__slice__label").data(data);
   var textLabelsEnter = textLabels.enter().append("text")
       .attr('class', 'mx-sunburstchart__slice__label')
       .style("fill-opacity", 1)
