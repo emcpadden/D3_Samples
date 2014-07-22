@@ -8,7 +8,7 @@
             "children": [
                 {
                     "id": "voice",
-                    "title": "Voice",
+                    "title": "Voice Is Four Lines",
                     "spend": 316716,
                     "count": 20897
                 },
@@ -86,7 +86,7 @@
                 },
                 {
                     "id": "networking",
-                    "title": "Networking",
+                    "title": "Networking Is Four Lines",
                     "spend": 77854,
                     "count": 1285
                 },
