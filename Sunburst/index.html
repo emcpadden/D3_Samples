@@ -43,7 +43,7 @@
 
 var width = 960,
     height = 550,
-    padding = 5,
+    labelPadding = 5,
     backBlockRadius = 50,
     currentDepth = 0,
     minXPerLine = 0.007;
@@ -53,7 +53,7 @@ var lightLabelColor = "#eee"; // The color to use for a label that is on a dark 
 var darkLabelColor = "#000"; // The color to use for a label that is on a light color slice (so it needs to be dark to show up)
 
 var scaleX = d3.scale.linear().range([0, 2 * Math.PI]);
-var labelScaleX = d3.scale.linear().range([0, 1]); // this is used to make decisions on how much label text will fix in a slice
+var labelScaleX = d3.scale.linear().range([0, 1]).domain([0, 1]); // this is used to make decisions on how much label text will fix in a slice
 var scaleY = d3.scale.linear().range([0, radius]);
 var color = d3.scale.category20b();
 
@@ -151,21 +151,52 @@ function getColor(d) {
   return  d3.rgb(d.color);
 }
 
+function getLabelText(d, line) {
+  if(line === 0) {
+    d.ellipsis = false;
+  }
+  var labelText = "";
+  var titles = d.title.split(" ");
+  if(line < titles.length ) {
+    if((d.depth && labelScaleX(d.dx) > (minXPerLine * (1 + line)))) {  
+      labelText = titles[line];
+      d.showTooltip = false;
+    }
+    else {
+      d.showTooltip = true;
+    }
+  }
+
+  // see if there is another line and if that line can fit,
+  // if it turns out that line cannot fit then add an ellipsis
+  // to the end of the string to indicate that there is more
+  if(!d.ellipsis && ((line + 1) < titles.length )) {
+    if((d.depth && labelScaleX(d.dx) <= (minXPerLine * (2 + line)))) {  
+      d.ellipsis = true;
+      d.showTooltip = true;
+      labelText = labelText + "...";
+    }
+  }
+
+  return labelText;
+}
+
 function drawChart(root) {
   var data = partition.nodes(root);
   var slices = svg.selectAll(".mx-sunburstchart__slice")
-    .data(data)
-    .enter().append("path")
+    .data(data);
+  var slicesEnter = slices.enter().append("path")
       .attr('class', 'mx-sunburstchart__slice')
       .attr('data-id', function(d){return d.id;})
       .attr("d", arc)
       .style("fill", setColor);
 
-  slices.append("title")
+  var tooltips = slicesEnter.append("title")
     .attr('class', 'mx-sunburstchart__slice__tooltip')
-    .text(function(d){return d.title;});      
+    //.text(function(d){return d.title;});      
+    .text(function(d){return "";});      
 
-  slices.on("click", click);
+  slicesEnter.on("click", click);
 
   // lets get the diameter of the inner circle
   var topLevelDiameter = ((d3.select(".mx-sunburstchart__slice[data-id='" + root.id + "']")[0])[0]).getBoundingClientRect().height;
@@ -188,39 +219,36 @@ function drawChart(root) {
         var multiline = (d.title || "").split(" ").length > 1,
             angle = scaleX(d.x + d.dx / 2) * 180 / Math.PI - 90,
             rotate = angle + (multiline ? -.5 : 0);
-        return "rotate(" + rotate + ")translate(" + (scaleY(d.y) + padding) + ")rotate(" + (angle > 90 ? -180 : 0) + ")";
+        return "rotate(" + rotate + ")translate(" + (scaleY(d.y) + labelPadding) + ")rotate(" + (angle > 90 ? -180 : 0) + ")";
       })
       .on("click", click);
 
   textEnter.append("tspan")
     .attr("class", "mx-sunburstchart__slice__label--1")
     .attr("x", 0)
-    .text(function(d) { 
-      return (d.depth && d.dx > minXPerLine) ? d.title.split(" ")[0] : ""; }
-    );
+    .text(function(d) { return getLabelText(d, 0);});
 
   textEnter.append("tspan")
     .attr("class", "mx-sunburstchart__slice__label--2")
     .attr("x", 0)
     .attr("dy", labelFontSize)
-    .text(function(d) { 
-      return (d.depth && d.dx > minXPerLine*2) ? d.title.split(" ")[1] || "" : ""; 
-    });
+    .text(function(d) { return getLabelText(d, 1);});
 
   textEnter.append("tspan")
     .attr("class", "mx-sunburstchart__slice__label--3")
     .attr("x", 0)
     .attr("dy", labelFontSize)
-    .text(function(d) { 
-      return (d.depth && d.dx > minXPerLine*3) ? d.title.split(" ")[2] || "" : ""; 
-    });
+    .text(function(d) { return getLabelText(d, 2);});
+
   textEnter.append("tspan")
     .attr("class", "mx-sunburstchart__slice__label--4")
     .attr("x", 0)
     .attr("dy", labelFontSize)
-    .text(function(d) { 
-      return (d.depth && d.dx > minXPerLine*4) ? d.title.split(" ")[3] || "" : ""; 
-    });
+    .text(function(d) { return getLabelText(d, 3);});
+
+  tooltips.text(function(d){
+    return d.showTooltip ? d.title : "";
+  });      
 
   // add title text to the center of the chart
   // lets get the diameter of the inner circle
@@ -295,21 +323,13 @@ function drawChart(root) {
 
     if(zoomOut) {
       textLabels.select('.mx-sunburstchart__slice__label--1')
-        .text(function(d) { 
-          return (d.depth && labelScaleX(d.dx) > minXPerLine) ? d.title.split(" ")[0] : ""; }
-          );
+        .text(function(d) { return getLabelText(d, 0);})
       textLabels.select('.mx-sunburstchart__slice__label--2')
-        .text(function(d) { 
-          return (d.depth && labelScaleX(d.dx) > 2*minXPerLine) ? d.title.split(" ")[1] : ""; }
-          );
+        .text(function(d) { return getLabelText(d, 1);})
       textLabels.select('.mx-sunburstchart__slice__label--3')
-        .text(function(d) { 
-          return (d.depth && labelScaleX(d.dx) > 3*minXPerLine) ? d.title.split(" ")[2] : ""; }
-          );
+        .text(function(d) { return getLabelText(d, 2);});
       textLabels.select('.mx-sunburstchart__slice__label--4')
-        .text(function(d) { 
-          return (d.depth && labelScaleX(d.dx) > 4*minXPerLine) ? d.title.split(" ")[3] : ""; }
-          );
+        .text(function(d) { return getLabelText(d, 3);});
     }
 
     slices.transition()
@@ -337,7 +357,7 @@ function drawChart(root) {
         return function() {
           var angle = scaleX(d.x + d.dx / 2) * 180 / Math.PI - 90;
           var rotate = angle + (multiline ? -.5 : 0);
-          return "rotate(" + rotate + ")translate(" + (scaleY(d.y) + padding) + ")rotate(" + (angle > 90 ? -180 : 0) + ")";
+          return "rotate(" + rotate + ")translate(" + (scaleY(d.y) + labelPadding) + ")rotate(" + (angle > 90 ? -180 : 0) + ")";
         };
       })
       .style("fill-opacity", function(e) { return isParentOf(d, e) ? 1 : 1e-6; })
@@ -348,21 +368,13 @@ function drawChart(root) {
         d3.select(this).style("visibility", isParentOf(d, e) ? null : "hidden");
 
         textLabels.select('.mx-sunburstchart__slice__label--1')
-          .text(function(d) { 
-            return (d.depth && labelScaleX(d.dx) > minXPerLine) ? d.title.split(" ")[0] : ""; }
-          );
+          .text(function(d) { return getLabelText(d, 0);})
         textLabels.select('.mx-sunburstchart__slice__label--2')
-          .text(function(d) { 
-            return (d.depth && labelScaleX(d.dx) > 2*minXPerLine) ? d.title.split(" ")[1] : ""; }
-          );
+          .text(function(d) { return getLabelText(d, 1);})
         textLabels.select('.mx-sunburstchart__slice__label--3')
-          .text(function(d) { 
-            return (d.depth && labelScaleX(d.dx) > 3*minXPerLine) ? d.title.split(" ")[2] : ""; }
-          );
+          .text(function(d) { return getLabelText(d, 2);})
         textLabels.select('.mx-sunburstchart__slice__label--4')
-          .text(function(d) { 
-            return (d.depth && labelScaleX(d.dx) > 4*minXPerLine) ? d.title.split(" ")[3] : ""; }
-          );
+          .text(function(d) { return getLabelText(d, 3);});
       });      
 
       if(d.depth === 0) {
