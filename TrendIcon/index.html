@@ -29,20 +29,20 @@ body {
 var width = 100;
 var height = 40;
 
-var x = d3.time.scale()
+var scaleX = d3.time.scale()
     .range([0, width - 1]);
 
-var y = d3.scale.linear()
+var scaleY = d3.scale.linear()
     .range([height - 1, 0]);
 
 var line = d3.svg.line()
-    .x(function(d) { return x(d.date); })
-    .y(function(d) { return y(d.value); });
+    .x(function(d) { return scaleX(d.date); })
+    .y(function(d) { return scaleY(d.value); });
 
 var area = d3.svg.area()
-    .x(function(d) { return x(d.date); })
+    .x(function(d) { return scaleX(d.date); })
     .y0(height)
-    .y1(function(d) { return y(d.value); });
+    .y1(function(d) { return scaleY(d.value); });
 
 var svg = d3.select("body").append("svg")
     .attr("class", "mx-trendicon")
@@ -85,8 +85,8 @@ if(yMin < 0) {
 }
 var yMax = d3.max(data, function(d) { return d.value; });
 
-  x.domain(d3.extent(data, function(d) { return d.date; }));
-  y.domain([yMin, yMax]);
+  scaleX.domain(d3.extent(data, function(d) { return d.date; }));
+  scaleY.domain([yMin, yMax]);
 
   svg.append("path")
       .datum(data)
