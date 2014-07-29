@@ -1,1 +1,101 @@
-<h1>TREND ICON</h1>
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.mx-trendicon {
+
+}
+
+.mx-trendicon__area {
+  fill: #D5E9F1;
+}
+
+.mx-trendicon__line {
+  fill: none;
+  stroke: #299CCF;
+  stroke-width: 2px;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js"></script>
+<script>
+
+var width = 100;
+var height = 40;
+
+var x = d3.time.scale()
+    .range([0, width - 1]);
+
+var y = d3.scale.linear()
+    .range([height - 1, 0]);
+
+var line = d3.svg.line()
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.value); });
+
+var area = d3.svg.area()
+    .x(function(d) { return x(d.date); })
+    .y0(height)
+    .y1(function(d) { return y(d.value); });
+
+var svg = d3.select("body").append("svg")
+    .attr("class", "mx-trendicon")
+    .attr("width", width + 1)
+    .attr("height", height +1)
+  .append("g")
+    .attr("transform", "translate(" + 1 + "," + 1 + ")");
+
+data = [
+  {
+    date: moment().startOf("month").subtract("month", 6).toDate(),
+    value: 1000
+  },
+  {
+    date: moment().startOf("month").subtract("month", 5).toDate(),
+    value: 2000
+  },
+  {
+    date: moment().startOf("month").subtract("month", 4).toDate(),
+    value: 1500
+  },
+  {
+    date: moment().startOf("month").subtract("month", 3).toDate(),
+    value: 2200
+  },
+  {
+    date: moment().startOf("month").subtract("month", 2).toDate(),
+    value: 2200
+  },
+  {
+    date: moment().startOf("month").subtract("month", 1).toDate(),
+    value: 1200
+  }
+];
+
+var yMin = d3.min(data, function(d) { return d.value; });
+yMin = yMin - yMin * .1;
+if(yMin < 0) {
+  yMin = 0;
+}
+var yMax = d3.max(data, function(d) { return d.value; });
+
+  x.domain(d3.extent(data, function(d) { return d.date; }));
+  y.domain([yMin, yMax]);
+
+  svg.append("path")
+      .datum(data)
+      .attr("class", "mx-trendicon__area")
+      .attr("d", area);
+
+  svg.append("path")
+      .datum(data)
+      .attr("class", "mx-trendicon__line")
+      .attr("d", line);
+
+</script>
