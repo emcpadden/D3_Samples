@@ -25,16 +25,21 @@ $(
 		var height = 10;
 
 		var data = [{
-			value: 30,
-			max: 100,
-			min: 0,
-			rangeLow: 40,
-			rangeHigh: 75
+			valuexxx: 30,
+			maxxxx: 100,
+			minxxx: 0,
+			rangeLowxxx: 40,
+			rangeHighxxx: 75
 		}];
 
 		var chart = d3.tgSingleBarChart()
 		    .width(width)
-		    .height(height);
+		    .height(height)
+		    .valuePropertyName('valuexxx')
+		    .maxValuePropertyName('maxxxx')
+		    .minValuePropertyName('minxxx')
+		    .rangeLowPropertyName('rangeLowxxx')
+		    .rangeHighPropertyName('rangeHighxxx');
 
 
 		var chartSVG = d3.select("#chart").selectAll("svg")

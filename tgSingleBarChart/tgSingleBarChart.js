@@ -119,7 +119,7 @@ d3.tgSingleBarChart = function() {
           .attr("x", 0)
           .attr("y", topBottomBarMarginAdjusted);
 
-      transitionBarColor(valueBar, d.value, d.rangeLow, d.rangeHigh, inRangeColor, outOfRangeColor, duration);
+      transitionBarColor(valueBar, value, rangeLow, rangeHigh, inRangeColor, outOfRangeColor, duration);
 
       }
       else {
@@ -177,6 +177,46 @@ d3.tgSingleBarChart = function() {
     duration = x;
     return bar;
   };
+
+  bar.valuePropertyName = function(x) {
+    if (!arguments.length) {
+      return valuePropertyName;
+    }
+    valuePropertyName = x;
+    return bar;
+  }
+
+  bar.maxValuePropertyName = function(x) {
+    if (!arguments.length) {
+      return maxValuePropertyName;
+    }
+    maxValuePropertyName = x;
+    return bar;
+  }
+
+  bar.minValuePropertyName = function(x) {
+    if (!arguments.length) {
+      return minValuePropertyName;
+    }
+    minValuePropertyName = x;
+    return bar;
+  }
+
+  bar.rangeLowPropertyName = function(x) {
+    if (!arguments.length) {
+      return rangeLowPropertyName;
+    }
+    rangeLowPropertyName = x;
+    return bar;
+  }
+
+  bar.rangeHighPropertyName = function(x) {
+    if (!arguments.length) {
+      return rangeHighPropertyName;
+    }
+    rangeHighPropertyName = x;
+    return bar;
+  }
 
   bar.topBottomBarMargin = function(x) {
     if (!arguments.length) {
