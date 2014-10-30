@@ -28,105 +28,48 @@ d3.tsv(datafile,
   },
   function(error, data) {
 
-  function tween(d, i, a) {
-    return d3.interpolateString("rotate(0, 0, 0)", "rotate(0, 180, 0)");
+  function tweenCenter(d, i, a) {
+    return d3.interpolateString("translate(0,0)", "translate(" + (gridSize/3) + ",0)");
+  }
+  function tweenBack(d, i, a) {
+    return d3.interpolateString("translate(" + (gridSize/3) + ",0)", "translate(0,0)");
   }
 
-  function tween1(d, i, a) {
-    return d3.interpolateString("scale(0, 1)", "rotate(0, 90, 0)");
-  }
-  function tween2(d, i, a) {
-    return d3.interpolateString("rotate(0, 90, 0)", "rotate(0, 0, 0)");
-  }
-
-  function tween3(d, i, a) {
-    return d3.interpolateString("translate(0,0)", "translate(" + (gridSize/2) + ",0)");
-  }
-  function tween4(d, i, a) {
-    return d3.interpolateString("translate(" + (gridSize/2) + ",0)", "translate(0,0)");
-  }
-
-/*
-    heatMap = svg.selectAll(".hour")
-        .data(data)
-        .transition()
-        .delay(function(d, i) { return (Math.random() * 100) + (i / data.length * 200); })
-        .duration(200)
-        .attr("x", function(d) { return ((d.hour - 1) * gridSize) + gridSize/2; })
-        .attr("width", 0)
-        .transition().duration(200)
-        .attr("x", function(d) { return (d.hour - 1) * gridSize; })
-        .attr("width", gridSize)
-        .style("fill", function(d) { return colorScale(d.value); });
-*/
-
-    heatMap = svg.selectAll(".hour")
-        .data(data)
-        .transition()
-        .delay(function(d, i) { return (Math.random() * 200) + (i / data.length * 500); })
-        .duration(200)
-        .attr("width", 0)
-        .attrTween("transform", tween3)
-        .transition().duration(0)
-        .style("fill", function(d) { return colorScale(d.value); })
-        .transition().duration(200)
-        .attrTween("transform", tween4)
-        .attr("width", gridSize)
-        .transition();
-        //.duration(200)
-        //.attr("transform", "translate(0,0)")
+  heatMap = svg.selectAll(".hour")
+      .data(data)
+      .transition()
+      .delay(function(d, i) { return (((d.hour)/24 * 500) + (d.day / 7 * 300)); })
+      .duration(300)
+      .attrTween("transform", tweenCenter)
+      .transition()
+      .duration(300)
+      .style("fill", function(d, i) { return colorScale(d.value); })
+      .delay(function(d, i) { return (((d.hour)/24 * 500) + (d.day / 7 * 300)); })
+      .transition()
+      .duration(200)
+      .attrTween("transform", tweenBack)
+      .transition();
+  });
 
 /*
-    heatMap = svg.selectAll(".hour")
-        .data(data).transition().duration(1000)
-        .attrTween("transform", tween);//.transition().duration(1000)
-        //.style("fill", function(d) { return colorScale(d.value); });
+  heatMap = svg.selectAll(".hour")
+      .data(data)
+      .transition()
+      //.delay(function(d, i) { return (Math.random() * 200 + ((d.hour)/24 * 300) + (d.day / 7 * 500)); })
+      .delay(function(d, i) { return (((d.hour)/24 * 500) + (d.day / 7 * 300)); })
+      //.duration(300)
+      //.attr("width", 0)
+      .attrTween("transform", tweenCenter)
+      .transition()
+      .style("fill", function(d, i) { return colorScale(d.value); })
+      //.transition().duration(300)
+      //.attr("width", gridSize)
+      .delay(function(d, i) { return (((d.hour)/24 * 500) + (d.day / 7 * 300)); })
+      .transition().duration(200)
+      .attrTween("transform", tweenBack)
+      .transition();
+  });
 */
-/*
-    heatMap = svg.selectAll(".hour")
-        .data(data)
-        .transition().duration(1000)
-        .attr("width", 0)
-        .transition().duration(1000)
-        .attr("width", gridSize)
-        .style("fill", function(d) { return colorScale(d.value); });
-*/
-/*
-    heatMap = svg.selectAll(".hour")
-        .data(data)
-        .transition()
-        .delay(function(d, i) { return (Math.random() * 200) + (i / data.length * 200); })
-        .duration(200)
-        .attr("width", 0)
-        .transition().duration(200)
-        .attr("width", gridSize)
-        .style("fill", function(d) { return colorScale(d.value); });
-*/
-/*
-    heatMap = svg.selectAll(".hour")
-        .data(data)
-        .transition()
-        .delay(function(d, i) { return (Math.random() * 200) + (i / data.length * 200); })
-        .duration(200)
-        .attr("transform", "translate(" + (gridSize/2) + ", 0) scale(0.001)")
-        .duration(0)
-        .style("fill", function(d) { return colorScale(d.value); })
-        .transition().duration(200)
-        .attr("transform", "translate(0, 0) scale(1)")
-*/
-/*
-    heatMap = svg.selectAll(".hour")
-        .data(data)
-        .transition()
-        .delay(function(d, i) { return (Math.random() * 200) + (i / data.length * 200); })
-        .duration(200)
-        .attr("transform", "scale(0.001)")
-        .duration(0)
-        .style("fill", function(d) { return colorScale(d.value); })
-        .transition().duration(200)
-        .attr("transform", "scale(1)")
-*/
-});
 }
 
 function init() {
