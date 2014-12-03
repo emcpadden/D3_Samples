@@ -3,11 +3,17 @@ var margin = { top: 50, right: 0, bottom: 100, left: 30 },
     height = 430 - margin.top - margin.bottom,
     gridSize = Math.floor(width / 24),
     legendElementWidth = gridSize*2,
-    buckets = 9,
+    //buckets = 11,
     //colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"], // alternatively colorbrewer.YlGnBu[9]
+
+
     colors = ["#5E4FA2","#3288BD","#66C2A5","#ABDDA4","#E6F598","#f6faaa","#FEE08B","#FDAE61","#F46D43", "#D53E4F", "#9E0142"], // alternatively colorbrewer.YlGnBu[9]
+
+    //colors = ["#5E4FA2","#3288BD","#66C2A5","#ABDDA4","#E6F598","#f6faaa","#FEE08B","#FDAE61","#F46D43"],
+
     days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
     times = ["1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a", "11a", "12a", "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p", "12p"];
+var buckets = colors.length;
 var svg = null;
 var heatMap = null;
 var colorScale = null;
@@ -41,6 +47,21 @@ d3.tsv(datafile,
       .transition()
       .delay(function(d, i) { return (((d.hour)/24 * 500) + (d.day / 7 * 300)); })
       .duration(300)
+      .attr("width", 0)
+      .transition()
+      .duration(300)
+      .style("fill", function(d, i) { return colorScale(d.value); })
+      .transition()
+      .duration(200)
+      .attr("width", gridSize);
+  });
+
+/*
+  heatMap = svg.selectAll(".hour")
+      .data(data)
+      .transition()
+      .delay(function(d, i) { return (((d.hour)/24 * 500) + (d.day / 7 * 300)); })
+      .duration(300)
       .attrTween("transform", tweenCenter)
       .transition()
       .duration(300)
@@ -49,9 +70,9 @@ d3.tsv(datafile,
       .transition()
       .duration(200)
       .attrTween("transform", tweenBack)
-      .transition();
+      //.transition();
   });
-
+*/
 /*
   heatMap = svg.selectAll(".hour")
       .data(data)
@@ -65,6 +86,25 @@ d3.tsv(datafile,
       .style("fill", function(d, i) { return colorScale(d.value); })
       //.transition().duration(300)
       //.attr("width", gridSize)
+      .delay(function(d, i) { return (((d.hour)/24 * 500) + (d.day / 7 * 300)); })
+      .transition().duration(200)
+      .attrTween("transform", tweenBack)
+      .transition();
+  });
+*/
+/*
+  heatMap = svg.selectAll(".hour")
+      .data(data)
+      .transition()
+      //.delay(function(d, i) { return (Math.random() * 200 + ((d.hour)/24 * 300) + (d.day / 7 * 500)); })
+      .delay(function(d, i) { return (((d.hour)/24 * 500) + (d.day / 7 * 300)); })
+      .duration(300)
+      .attr("width", 0)
+      .attrTween("transform", tweenCenter)
+      .transition()
+      .style("fill", function(d, i) { return colorScale(d.value); })
+      .transition().duration(300)
+      .attr("width", gridSize)
       .delay(function(d, i) { return (((d.hour)/24 * 500) + (d.day / 7 * 300)); })
       .transition().duration(200)
       .attrTween("transform", tweenBack)
@@ -128,7 +168,8 @@ svg = d3.select("#chart").append("svg")
     heatMap.transition().duration(1000)
         .style("fill", function(d) { return colorScale(d.value); });
 
-    heatMap.append("title").text(function(d) { return d.value; });
+    heatMap.append("title")
+      .text(function(d) { return d.value; });
         
     var legend = svg.selectAll(".legend")
         .data([0].concat(colorScale.quantiles()), function(d) { return d; })
