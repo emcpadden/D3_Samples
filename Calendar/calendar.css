@@ -1,0 +1,22 @@
+.calendarShell {
+	margin: 50px;
+	background: #2559a7;
+	font-family: sans-serif;
+}
+
+.calendarShell__controls {
+	height: 50px;
+	overflow: auto;
+	color: #fff;
+}
+
+.calendarShell__controls__dateNavigation {
+	float: left;
+}
+
+.calendarShell__controls__viewSelection {
+	float: right;
+}
+
+.calendar {
+}
