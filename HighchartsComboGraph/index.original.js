@@ -3,94 +3,12 @@ $(function () {
 
     $(document).ready(function () {
 
-// BILL GRAPH
-    $('#billGraphContainer').highcharts({
-        title: {
-            text: "Bills"
-        },
-        subtitle: {
-            text: "Expected Qty and Value"
-        },
-        xAxis: [{
-            categories: [
-                '1-Dec', '2-Dec', '3-Dec', '4-Dec', '5-Dec', 
-                '6-Dec', '7-Dec', '8-Dec', '9-Dec', '10-Dec', 
-                '11-Dec', '12-Dec', '13-Dec', '14-Dec', '15-Dec', 
-                '16-Dec', '17-Dec', '18-Dec', '19-Dec', '20-Dec', 
-                '21-Dec', '22-Dec', '23-Dec', '24-Dec', '25-Dec', 
-                '26-Dec', '27-Dec', '28-Dec', '29-Dec', '30-Dec']
-        }],    
-        yAxis: [
-        { // Secondary yAxis
-            title: {
-                text: 'QTY',
-                style: {
-                    color: Highcharts.getOptions().colors[0]
-                }
-            },
-            labels: {
-                format: '{value}',
-                style: {
-                    color: Highcharts.getOptions().colors[0]
-                }
-            }
-        },
-        { // Primary yAxis
-            title: {
-                text: 'Value',
-                style: {
-                    color: Highcharts.getOptions().colors[1]
-                }
-            },
-            labels: {
-                format: '${value}',
-                style: {
-                    color: Highcharts.getOptions().colors[1]
-                }
-            },
-            opposite: true
-        }
-        ],   
-        tooltip: {
-            shared: true
-        },
-        /*
-        legend: {
-            layout: 'vertical',
-            align: 'left',
-            x: 120,
-            verticalAlign: 'top',
-            y: 100,
-            floating: true,
-            backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'
-        },
-        */
-        series: [
-            {
-                name: 'Value',
-                type: 'areaspline',
-                data: billsExpectedValue,
-                tooltip: {
-                    valuePrefix: '$'
-                }
-            },
-            {
-                name: 'QTY',
-                type: 'column',
-                yAxis: 1,
-                data: billsExpectedQty
-            } 
-        ]
-    });    
-
-
-// MASTER DETAIL EXAMPLE
         // create the detail chart
         function createDetail(masterChart) {
 
             // prepare the detail chart
             var detailData = [],
-                detailStart = Date.UTC(2014, 0, 1);
+                detailStart = Date.UTC(2008, 7, 1);
 
             $.each(masterChart.series[0].data, function () {
                 if (this.x >= detailStart) {
@@ -224,11 +142,11 @@ $(function () {
                 xAxis: {
                     type: 'datetime',
                     showLastTickLabel: true,
-                    minRange: 14 * 24 * 3600000, // fourteen days
+                    maxZoom: 14 * 24 * 3600000, // fourteen days
                     plotBands: [{
                         id: 'mask-before',
-                        from: Date.UTC(2014, 0, 1),
-                        to: Date.UTC(2014, 0, 30),
+                        from: Date.UTC(2006, 0, 1),
+                        to: Date.UTC(2008, 7, 1),
                         color: 'rgba(0, 0, 0, 0.2)'
                     }],
                     title: {
@@ -283,8 +201,8 @@ $(function () {
                 series: [{
                     type: 'area',
                     name: 'USD to EUR',
-                    pointInterval: 60 * 1000 * 60 * 24,//24 * 3600 * 1000,
-                    pointStart: Date.UTC(2014, 0, 1),
+                    pointInterval: 24 * 3600 * 1000,
+                    pointStart: Date.UTC(2006, 0, 1),
                     data: data
                 }],
 
@@ -304,15 +222,15 @@ $(function () {
         window.onresize = resize;
 
         // make the container smaller and add a second container for the master chart
-        var $masterDetailContainer = $('#masterDetailContainer')
+        var $container = $('#container')
             .css('position', 'relative');
 
         $('<div id="detail-container">')
-            .appendTo($masterDetailContainer);
+            .appendTo($container);
 
         $('<div id="master-container">')
             .css({ position: 'absolute', top: 300, height: 100, width: '100%' })
-            .appendTo($masterDetailContainer);
+            .appendTo($container);
 
         // create master and in its callback, create the detail chart
         createMaster();
