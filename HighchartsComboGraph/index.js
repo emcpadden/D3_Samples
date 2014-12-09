@@ -6,7 +6,6 @@ $(function () {
     $('#billGraphContainer').highcharts({
         chart: {
             alignTicks: false,
-            //panning: true,
             zoomType: "x",
             resetZoomButton: {
                 relativeTo: "chart",
@@ -41,7 +40,6 @@ $(function () {
             enabled: false
         },
         xAxis: [{
-            //alternateGridColor: '#EFF0FF',
             categories: [
                 '1-Dec', '2-Dec', '3-Dec', '4-Dec', '5-Dec', 
                 '6-Dec', '7-Dec', '8-Dec', '9-Dec', '10-Dec', 
@@ -51,55 +49,48 @@ $(function () {
                 '26-Dec', '27-Dec', '28-Dec', '29-Dec', '30-Dec']
         }],    
         yAxis: [
-        { // Primary yAxis
-            allowDecimals: false,
-            maxPadding: 0.005,
-            //gridLineWidth: 10,
-            title: {
-                text: 'Invoice Count',
-                style: {
-                    color: Highcharts.getOptions().colors[0]
+            { 
+                allowDecimals: false,
+                maxPadding: 0.005,
+                title: {
+                    text: 'Invoice Count',
+                    style: {
+                        color: Highcharts.getOptions().colors[0]
+                    }
+                },
+                labels: {
+                    style: {
+                        color: Highcharts.getOptions().colors[0]
+                    }
                 }
             },
-            labels: {
-                style: {
-                    color: Highcharts.getOptions().colors[0]
-                }
+            { 
+                allowDecimals: false,
+                maxPadding: 0.0005,
+                gridLineWidth: 0,
+                title: {
+                    text: 'Staff Count',
+                    style: {
+                        color: Highcharts.getOptions().colors[1]
+                    }
+                },
+                labels: {
+                    style: {
+                        color: Highcharts.getOptions().colors[1]
+                    }
+                },
+                opposite: true
             }
-        },
-        { // Secondary yAxis
-            allowDecimals: false,
-            maxPadding: 0.0005,
-            gridLineWidth: 0,
-            title: {
-                text: 'Staff Count',
-                style: {
-                    color: Highcharts.getOptions().colors[1]
-                }
-            },
-            labels: {
-                style: {
-                    color: Highcharts.getOptions().colors[1]
-                }
-            },
-            opposite: true
-        }
         ], 
-//        scrollbar: {
-//            enabled: true,
-//        },
         tooltip: {
             shared: true,
-            //followPointer: false,
             useHTML: true,
-           headerFormat: '<p>{point.key}</p><table style="font-size: 12px;">',
-            pointFormat: '<tr><td style="color: {series.color}; white-space: nowrap;">{series.name}: </td>' +
-                '<td style="text-align: right"><b>{point.y}</b></td></tr>',
+            headerFormat: '<p>{point.key}</p><table style="font-size: 12px;">',
+            pointFormat: '<tr><td style="color: {series.color}; white-space: nowrap;">{series.name}: </td><td style="text-align: right"><b>{point.y}</b></td></tr>',
             footerFormat: '</table>'
         },
         plotOptions: {
             areaspline: {
-                //drilldown: true,
                 trackByArea: true,
                 marker: {
                     states: {
@@ -111,85 +102,31 @@ $(function () {
                         }
                     }
                 },
-                /*
-                states: {
-                    hover: {
-                        enabled: true,
-                        halo: {
-                            size: 20,
-                            opacity: 0.5
-                        },
-                        marker: {
-                            radius: 10
-                        }
-                    }
-                },
-                */
                 point: {
                     events: {
-                        mouseOver: function (e) {
-                            console.log("over");
-                            if($('#billGraphContainer').highcharts().series[1].visible) {
-                                $('#billGraphContainer').highcharts().series[1].points[this.index].select();
-                            }
-                            else {
-                                $('#billGraphContainer').highcharts().series[0].points[this.index].select();
-                            }
-                        },
                         select: function (e) {
                             console.log("AREA... select" + " category: " + this.category + " index: " + this.index);
                         }
                     }
                 },
                 cursor: 'pointer'
-                //allowPointSelect: true,
-                /*
-                events: {
-                    click: function (event) {
-                        console.log(this.name + " clicked");
-                    },
-                    mouseOver: function (e) {
-                        console.log(this.name + " over");
-                    },
-                    mouseOut: function () {
-                        console.log(this.name + " out");
-                    }                
-                }
-                */
             },
             column: {
                 point: {
                     events: {
-                        mouseOver: function (e) {
-                            console.log("over");
-                            if($('#billGraphContainer').highcharts().series[1].visible) {
-                                $('#billGraphContainer').highcharts().series[1].points[this.index].select();
-                            }
-                            else {
-                                $('#billGraphContainer').highcharts().series[0].points[this.index].select();
-                            }
-                        },
                         select: function (e) {
                             console.log("BAR... select" + " category: " + this.category + " index: " + this.index);
                         }
                     }
                 },
                 cursor: 'pointer',
-                //allowPointSelect: true,
-                /*
-                events: {
-                    click: function (event) {
-                        console.log(this.name + " clicked");
-                   }
-                }
-                */
             }
         },
         series: [
             {
                 name: '# of Invoices',
                 index: 1,
-                allowPointSelect: false,
+                allowPointSelect: true,
                 type: 'areaspline',
                 data: numberOfInvoices
             },
@@ -197,7 +134,7 @@ $(function () {
                 name: 'Staff Count',
                 index: 0,
                 yAxis: 1,
-                allowPointSelect: false,
+                allowPointSelect: true,
                 type: 'column',
                 data: staffCount
             }
