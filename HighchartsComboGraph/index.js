@@ -3,6 +3,78 @@ $(function () {
 
     $(document).ready(function () {
 
+    // gauge chart
+    var gaugeOptions = {
+        chart: {
+            type: 'solidgauge'
+        },
+        title: null,
+        credits: {
+            enabled: false
+        },
+        pane: {
+            center: ['50%', '85%'],
+            size: '140%',
+            startAngle: -90,
+            endAngle: 90,
+            background: {
+                backgroundColor: '#EEE',
+                innerRadius: '60%',
+                outerRadius: '100%',
+                shape: 'arc'
+            }
+        },
+        tooltip: {
+            enabled: false
+        },
+        exporting: {
+            enabled: false
+        },
+
+        // the value axis
+        yAxis: {
+            stops: [
+                [0.25, '#DDDF0D'], // yellow
+                [0.7, '#55BF3B'], // green
+                [0.9, '#297317'] // red
+            ],
+            min: 0,
+            max: 42,
+            lineWidth: 0,
+            minorTickInterval: null,
+            tickPixelInterval: 400,
+            tickWidth: 0,
+            title: {
+                enabled: false,
+                text: 'Received',
+                y: -30
+            },
+            labels: {
+                enabled: false,
+                y: 16
+            }
+        },
+        plotOptions: {
+            solidgauge: {
+                dataLabels: {
+                    y: 5,
+                    borderWidth: 0,
+                    useHTML: true
+                }
+            }
+        },
+        series: [{
+            name: 'Speed',
+            data: [32],
+            dataLabels: {
+                y: 5,
+                format: '<div class="mx-gauge__info"><div class="mx-gauge__info__value">{y}</div>' +
+                       '<div class="mx-gauge__info__label">received</div></div>'
+            }
+        }]        
+    }
+    $('#billsReceivedContainer').highcharts(gaugeOptions);
+
     $('#billGraphContainer').highcharts({
         chart: {
             alignTicks: false,

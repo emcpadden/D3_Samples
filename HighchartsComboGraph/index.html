@@ -1,9 +1,33 @@
 <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/highcharts-more.js"></script>
+<script src="http://code.highcharts.com/modules/solid-gauge.js"></script>
 <script src="http://code.highcharts.com/modules/exporting.js"></script>
 
 <script src="data.js"></script>
 <script src="index.js"></script>
+
+<style type="text/css">
+	.mx-gauge__info {
+		color: black;
+		text-align: center;
+	}
+	.mx-gauge__info__value {
+		font-size: 18px;
+		line-height: 18px;
+		font-weight: bold;
+	}
+	.mx-gauge__info__label {
+		font-size: 11px;
+		line-height: 11px;
+		font-weight: normal;
+	}
+</style>
+
+<h3>Highcharts Experiments</h3>
+
+<div id="billsReceivedContainer" style="width: 150px; height: 100px; margin: 0 auto"></div>
+
 
 <div id="billGraphContainer" style="min-width: 310px; width: 100%; height: 400px; margin: 0 auto"></div>
 
