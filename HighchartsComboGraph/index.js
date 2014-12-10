@@ -13,8 +13,8 @@ $(function () {
             enabled: false
         },
         pane: {
-            center: ['50%', '85%'],
-            size: '140%',
+            center: ['50%', '100%'],
+            size: '200%',
             startAngle: -90,
             endAngle: 90,
             background: {
@@ -42,20 +42,30 @@ $(function () {
             max: 42,
             lineWidth: 0,
             minorTickInterval: null,
-            tickPixelInterval: 400,
+            //tickPixelInterval: 4000,
             tickWidth: 0,
+            step: 0,
             title: {
                 enabled: false,
-                text: 'Received',
+                text: 'Bills Received',
                 y: -30
             },
             labels: {
                 enabled: false,
-                y: 16
+                align: 'center',
+                distance: 0,
+                //x: 0,
+                y: 10
             }
         },
         plotOptions: {
             solidgauge: {
+                /*
+                dial: {
+                    baseLength: '70%',
+                    baseWidth: 3
+                },
+                */
                 dataLabels: {
                     y: 5,
                     borderWidth: 0,
@@ -64,7 +74,7 @@ $(function () {
             }
         },
         series: [{
-            name: 'Speed',
+            name: 'bills',
             data: [32],
             dataLabels: {
                 y: 5,
