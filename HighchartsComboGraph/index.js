@@ -3,6 +3,50 @@ $(function () {
 
     $(document).ready(function () {
 
+    // stacked bar chart
+    var invoicesInProcessOptions = {
+        chart: {
+            type: 'bar'
+        },
+        title: {
+            text: null
+        },
+        exporting: {
+            enabled: false
+        },
+        xAxis: {
+            categories: ['Initiated', 'Updated', 'Review', 'Approved', 'Completed']
+        },
+        yAxis: {
+            allowDecimals: false,
+            title: {
+                text: null
+            }
+        },
+        legend: {
+            reversed: true
+        },
+        plotOptions: {
+            series: {
+                stacking: 'normal'
+            }
+        },
+        series: [{
+            name: 'Out of SLA',
+            color: 'red',
+            data: [3, 4, 4, 2, 5]
+        }, {
+            name: 'At Risk',
+            color: 'yellow',
+            data: [2, 2, 3, 2, 1]
+        }, {
+            name: 'On Time',
+            color: 'green',
+            data: [25, 13, 24, 17, 22]
+        }]        
+    };
+    $('#invoicesToProcessContainer').highcharts(invoicesInProcessOptions);
+
     // gauge chart
     var gaugeOptions = {
         chart: {
@@ -82,7 +126,7 @@ $(function () {
                        '<div class="mx-gauge__info__label">received</div></div>'
             }
         }]        
-    }
+    };
     $('#billsReceivedContainer').highcharts(gaugeOptions);
 
     $('#billGraphContainer').highcharts({
